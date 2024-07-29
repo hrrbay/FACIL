@@ -27,7 +27,7 @@ class ExperimentLogger:
     def log_figure(self, name, iter, figure, curtime=None):
         pass
     
-    def log_print(self, *objects):
+    def log_print(self, *objects, **kwargs):
         pass
         
     def save_model(self, state_dict, task):
@@ -71,6 +71,10 @@ class MultiLogger(ExperimentLogger):
             curtime = datetime.now()
         for l in self.loggers:
             l.log_figure(name, iter, figure, curtime)
+
+    def log_print(self, *objects, **kwargs):
+        for l in self.loggers:
+            l.log_print(*objects, **kwargs)
 
     def save_model(self, state_dict, task):
         if self.save_models:
