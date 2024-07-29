@@ -1,6 +1,9 @@
 from os.path import join
+from os import environ
 
-_BASE_DATA_PATH = "../data"
+from .dataset_path import _BASE_DATA_PATH
+if environ.get('DATASET_PATH') is not None:
+    _BASE_DATA_PATH = environ.get('DATASET_PATH')
 
 dataset_config = {
     'mnist': {
