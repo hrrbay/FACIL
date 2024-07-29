@@ -2,7 +2,7 @@ import torch
 import itertools
 from argparse import ArgumentParser
 
-from datasets.exemplars_dataset import ExemplarsDataset
+from ..datasets.exemplars_dataset import ExemplarsDataset
 from .incremental_learning import Inc_Learning_Appr
 
 

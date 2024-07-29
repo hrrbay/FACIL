@@ -6,8 +6,8 @@ from argparse import ArgumentParser
 from torch.utils.data import DataLoader
 
 from .incremental_learning import Inc_Learning_Appr
-from datasets.exemplars_dataset import ExemplarsDataset
-from datasets.exemplars_selection import override_dataset_transform
+from ..datasets.exemplars_dataset import ExemplarsDataset
+from ..datasets.exemplars_selection import override_dataset_transform
 
 
 class Appr(Inc_Learning_Appr):

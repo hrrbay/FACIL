@@ -9,7 +9,7 @@ from torch.nn import Module, Parameter
 from torch.utils.data import DataLoader
 
 from .incremental_learning import Inc_Learning_Appr
-from datasets.exemplars_dataset import ExemplarsDataset
+from ..datasets.exemplars_dataset import ExemplarsDataset
 
 
 class Appr(Inc_Learning_Appr):

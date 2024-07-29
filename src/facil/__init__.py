@@ -211,6 +211,7 @@ def init():
     global tstart
     tstart = time.time()
 
+    print(f'init')
     # TODO: add seeds!!
     load_args()
     load_exp_name()

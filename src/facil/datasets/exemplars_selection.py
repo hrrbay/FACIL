@@ -8,7 +8,7 @@ import torch
 from torch.utils.data import DataLoader, ConcatDataset
 from torchvision.transforms import Lambda
 
-from ..datasets.exemplars_dataset import ExemplarsDataset
+from .exemplars_dataset import ExemplarsDataset
 from ..networks.network import LLL_Net
 
 
