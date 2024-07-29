@@ -147,17 +147,17 @@ def load_args():
     load_exemplar_args()
     load_gridsearch_args()
 
-def log_args():
-    logger.log_print('=' * 108)
-    logger.log_print('Arguments =')
+def print_args():
+    print('=' * 108)
+    print('Arguments =')
     for arg in np.sort(list(vars(args).keys())):
-        logger.log_print('\t' + arg + ':', getattr(args, arg))
-    logger.log_print('=' * 108)
+        print('\t' + arg + ':', getattr(args, arg))
+    print('=' * 108)
 
-    logger.log_print('Approach arguments =')
+    print('Approach arguments =')
     for arg in np.sort(list(vars(appr_args).keys())):
-        logger.log_print('\t' + arg + ':', getattr(appr_args, arg))
-    logger.log_print('=' * 108)
+        print('\t' + arg + ':', getattr(appr_args, arg))
+    print('=' * 108)
 
     if Appr_ExemplarsDataset:
         print('Exemplars dataset arguments =')
@@ -171,8 +171,6 @@ def log_args():
             print('\t' + arg + ':', getattr(gs_args, arg))
         print('=' * 108)
 
-    # TODO: add gs-args
-    logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__))
 
 def load_data():
     global trn_loader, val_loader, tst_loader, taskcla, max_task
@@ -206,6 +204,9 @@ def init_approach():
         gridsearch = GridSearch(appr_ft, args.seed, gs_args.gridsearch_config, gs_args.gridsearch_acc_drop_thr,
                                 gs_args.gridsearch_hparam_decay, gs_args.gridsearch_max_num_searches)
 
+def log_args():
+    logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__))
+    
 def init():
     global tstart
     tstart = time.time()
@@ -213,9 +214,10 @@ def init():
     # TODO: add seeds!!
     load_args()
     load_exp_name()
-    init_logger()
     # TODO: seed here??? why?? there is seed here in original main
     init_cuda()
+    print_args()
+    init_logger()
     log_args()
     utils.seed_everything()
     init_model()
