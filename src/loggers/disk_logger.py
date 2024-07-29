@@ -16,11 +16,12 @@ class Logger(ExperimentLogger):
 
         self.begin_time_str = self.begin_time.strftime("%Y-%m-%d-%H-%M")
 
-        # Duplicate standard outputs
-        sys.stdout = FileOutputDuplicator(sys.stdout,
-                                          os.path.join(self.exp_path, 'stdout-{}.txt'.format(self.begin_time_str)), 'w')
+        # Duplicate stderr -- TODO: do we want to keep this? 
         sys.stderr = FileOutputDuplicator(sys.stderr,
                                           os.path.join(self.exp_path, 'stderr-{}.txt'.format(self.begin_time_str)), 'w')
+        
+        # Base log file
+        self.log_file = open(os.path.join(self.exp_path, 'stdout-{}.txt'.format(self.begin_time_str)), 'w')
 
         # Raw log file
         self.raw_log_file = open(os.path.join(self.exp_path, "raw_log-{}.txt".format(self.begin_time_str)), 'a')
@@ -52,6 +53,12 @@ class Logger(ExperimentLogger):
         figure.savefig(os.path.join(self.exp_path, 'figures',
                                     '{}_{}-{}.pdf'.format(name, iter, curtime.strftime("%Y-%m-%d-%H-%M-%S"))))
 
+    def log_string(self, string, print_=True):
+        if print_:
+            print(string)
+        self.log_file.write('{}\n'.format(string))
+        self.log_file.flush()
+        
     def save_model(self, state_dict, task):
         torch.save(state_dict, os.path.join(self.exp_path, "models", "task{}.ckpt".format(task)))
 
