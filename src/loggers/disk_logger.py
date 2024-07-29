@@ -53,10 +53,22 @@ class Logger(ExperimentLogger):
         figure.savefig(os.path.join(self.exp_path, 'figures',
                                     '{}_{}-{}.pdf'.format(name, iter, curtime.strftime("%Y-%m-%d-%H-%M-%S"))))
 
-    def log_string(self, string, print_=True):
+    def log_print(self, *args, print_=True, sep=' '):
+        """Log to file with optional print to stdout.
+
+        This function mimics the behaviour of `print` by writing `objects` to `self.log_file`, seperated by `sep`.
+        if `print_=True`, also calls `print` with the corresponding arguments. 
+
+        Parameters
+        ----------
+        print_ : bool, optional
+            if True, call `print(objects, sep=sep)`, by default True
+        sep : str, optional
+            Same functionality as the `sep`-argument of `print`, by default ' '
+        """
         if print_:
-            print(string)
-        self.log_file.write('{}\n'.format(string))
+            print(args, sep=sep)
+        self.log_file.write('{}\n'.format(sep.join(args)))
         self.log_file.flush()
         
     def save_model(self, state_dict, task):

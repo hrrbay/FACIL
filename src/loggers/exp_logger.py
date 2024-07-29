@@ -26,7 +26,10 @@ class ExperimentLogger:
 
     def log_figure(self, name, iter, figure, curtime=None):
         pass
-
+    
+    def log_print(self, *objects):
+        pass
+        
     def save_model(self, state_dict, task):
         pass
 
