@@ -3,8 +3,8 @@ import torch
 import numpy as np
 from argparse import ArgumentParser
 
-from loggers.exp_logger import ExperimentLogger
-from datasets.exemplars_dataset import ExemplarsDataset
+from ..loggers.exp_logger import ExperimentLogger
+from ..datasets.exemplars_dataset import ExemplarsDataset
 
 
 class Inc_Learning_Appr:

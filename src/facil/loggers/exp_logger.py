@@ -49,7 +49,7 @@ class MultiLogger(ExperimentLogger):
         self.save_models = save_models
         self.loggers = []
         for l in loggers:
-            lclass = getattr(importlib.import_module(name='loggers.' + l + '_logger'), 'Logger')
+            lclass = getattr(importlib.import_module(name='facil.loggers.{}_logger'.format(l), package='.'), 'Logger')
             self.loggers.append(lclass(self.log_path, self.exp_name))
 
     def log_scalar(self, task, iter, name, value, group=None, curtime=None):

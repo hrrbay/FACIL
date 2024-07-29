@@ -1,7 +1,7 @@
 import importlib
 from argparse import ArgumentParser
 
-from datasets.memory_dataset import MemoryDataset
+from .memory_dataset import MemoryDataset
 
 
 class ExemplarsDataset(MemoryDataset):
@@ -14,7 +14,7 @@ class ExemplarsDataset(MemoryDataset):
         self.max_num_exemplars = num_exemplars
         assert (num_exemplars_per_class == 0) or (num_exemplars == 0), 'Cannot use both limits at once!'
         cls_name = "{}ExemplarsSelector".format(exemplar_selection.capitalize())
-        selector_cls = getattr(importlib.import_module(name='datasets.exemplars_selection'), cls_name)
+        selector_cls = getattr(importlib.import_module(name='.datasets.exemplars_selection', package='facil'), cls_name)
         self.exemplars_selector = selector_cls(self)
 
     # Returns a parser containing the approach specific parameters

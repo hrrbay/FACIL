@@ -5,8 +5,7 @@ import torch
 import numpy as np
 from datetime import datetime
 
-from loggers.exp_logger import ExperimentLogger
-
+from .exp_logger import ExperimentLogger
 
 class Logger(ExperimentLogger):
     """Characterizes a disk logger"""

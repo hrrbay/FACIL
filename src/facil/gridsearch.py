@@ -2,8 +2,7 @@ import importlib
 from copy import deepcopy
 from argparse import ArgumentParser
 
-import utils
-
+from . import utils
 
 class GridSearch:
     """Basic class for implementing hyperparameter grid search"""
