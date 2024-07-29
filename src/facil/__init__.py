@@ -131,10 +131,6 @@ def load_exemplar_args():
     if Appr_ExemplarsDataset:
         assert issubclass(Appr_ExemplarsDataset, ExemplarsDataset)
         appr_exemplars_dataset_args, extra_args = Appr_ExemplarsDataset.extra_parser(extra_args)
-        print('Exemplars dataset arguments =')
-        for arg in np.sort(list(vars(appr_exemplars_dataset_args).keys())):
-            print('\t' + arg + ':', getattr(appr_exemplars_dataset_args, arg))
-        print('=' * 108)
     else:
         appr_exemplars_dataset_args = argparse.Namespace()
 
@@ -144,10 +140,6 @@ def load_gridsearch_args():
     gs_args, extra_args = GridSearch.extra_parser(extra_args)
     assert issubclass(Appr_finetuning, Inc_Learning_Appr)
     GridSearch_ExemplarsDataset = Appr.exemplars_dataset_class()
-    print('GridSearch arguments =')
-    for arg in np.sort(list(vars(gs_args).keys())):
-        print('\t' + arg + ':', getattr(gs_args, arg))
-    print('=' * 108)
 
 def load_args():
     load_base_args()
@@ -166,6 +158,17 @@ def log_args():
     for arg in np.sort(list(vars(appr_args).keys())):
         logger.log_print('\t' + arg + ':', getattr(appr_args, arg))
     logger.log_print('=' * 108)
+
+    if Appr_ExemplarsDataset:
+        print('Exemplars dataset arguments =')
+        for arg in np.sort(list(vars(appr_exemplars_dataset_args).keys())):
+            print('\t' + arg + ':', getattr(appr_exemplars_dataset_args, arg))
+        print('=' * 108)
+
+    print('GridSearch arguments =')
+    for arg in np.sort(list(vars(gs_args).keys())):
+        print('\t' + arg + ':', getattr(gs_args, arg))
+    print('=' * 108)
 
     # TODO: add gs-args
     logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__))
@@ -213,9 +216,13 @@ def init():
     # TODO: seed here??? why?? there is seed here in original main
     init_cuda()
     log_args()
+    utils.seed_everything()
     init_model()
+    utils.seed_everything()
     load_data()
+    utils.seed_everything()
     init_approach()
+    utils.seed_everything()
 
 
 def train():

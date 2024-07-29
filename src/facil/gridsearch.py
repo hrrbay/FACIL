@@ -10,7 +10,7 @@ class GridSearch:
     def __init__(self, appr_ft, seed, gs_config='gridsearch_config', acc_drop_thr=0.2, hparam_decay=0.5,
                  max_num_searches=7):
         self.seed = seed
-        GridSearchConfig = getattr(importlib.import_module(name=gs_config), 'GridSearchConfig')
+        GridSearchConfig = getattr(importlib.import_module(name='.{}'.format(gs_config), package='facil'), 'GridSearchConfig')
         self.appr_ft = appr_ft
         self.gs_config = GridSearchConfig()
         self.acc_drop_thr = acc_drop_thr
