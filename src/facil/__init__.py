@@ -165,10 +165,11 @@ def log_args():
             print('\t' + arg + ':', getattr(appr_exemplars_dataset_args, arg))
         print('=' * 108)
 
-    print('GridSearch arguments =')
-    for arg in np.sort(list(vars(gs_args).keys())):
-        print('\t' + arg + ':', getattr(gs_args, arg))
-    print('=' * 108)
+    if args.gridsearch_tasks > 0:
+        print('GridSearch arguments =')
+        for arg in np.sort(list(vars(gs_args).keys())):
+            print('\t' + arg + ':', getattr(gs_args, arg))
+        print('=' * 108)
 
     # TODO: add gs-args
     logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__))
