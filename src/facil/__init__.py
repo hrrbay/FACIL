@@ -24,9 +24,6 @@ from . import utils
 from .gridsearch import GridSearch
 
 
-
-asdf = 3
-
 def load_base_args():
     parser = argparse.ArgumentParser(description='FACIL - Framework for Analysis of Class Incremental Learning')
 
@@ -104,7 +101,6 @@ def load_base_args():
     parser.add_argument('--gridsearch-tasks', default=-1, type=int,
                         help='Number of tasks to apply GridSearch (-1: all tasks) (default=%(default)s)')
 
-
     # Args -- Incremental Learning Framework
     global args, extra_args
     args, extra_args = parser.parse_known_args(sys.argv)
@@ -116,6 +112,7 @@ def load_base_args():
                        wd=args.weight_decay, multi_softmax=args.multi_softmax, wu_nepochs=args.warmup_nepochs,
                        wu_lr_factor=args.warmup_lr_factor, fix_bn=args.fix_bn, eval_on_train=args.eval_on_train)
 
+
 def load_approach_args():
     # Args -- Continual Learning Approach
     global Appr, appr_args, extra_args
@@ -123,6 +120,7 @@ def load_approach_args():
     Appr = getattr(importlib.import_module(name='.approach.{}'.format(args.approach), package='facil'), 'Appr')
     assert issubclass(Appr, Inc_Learning_Appr)
     appr_args, extra_args = Appr.extra_parser(extra_args)
+
 
 def load_exemplar_args():
     global Appr_ExemplarsDataset, appr_exemplars_dataset_args, extra_args
@@ -134,18 +132,21 @@ def load_exemplar_args():
     else:
         appr_exemplars_dataset_args = argparse.Namespace()
 
+
 def load_gridsearch_args():
     global GridSearch_ExemplarsDataset, gs_args, extra_args
-    
+
     gs_args, extra_args = GridSearch.extra_parser(extra_args)
     assert issubclass(Appr_finetuning, Inc_Learning_Appr)
     GridSearch_ExemplarsDataset = Appr.exemplars_dataset_class()
+
 
 def load_args():
     load_base_args()
     load_approach_args()
     load_exemplar_args()
     load_gridsearch_args()
+
 
 def print_args():
     print('=' * 108)
@@ -176,6 +177,7 @@ def load_data():
     global trn_loader, val_loader, tst_loader, taskcla, max_task
 
     utils.seed_everything(seed=args.seed)
+
     trn_loader, val_loader, tst_loader, taskcla = get_loaders(args.datasets, args.num_tasks, args.nc_first_task,
                                                               args.batch_size, num_workers=args.num_workers,
                                                               pin_memory=args.pin_memory)
@@ -183,6 +185,7 @@ def load_data():
     if args.use_valid_only:
         tst_loader = val_loader
     max_task = len(taskcla) if args.stop_at_task == 0 else args.stop_at_task
+
 
 def init_approach():
     global appr_kwargs, appr, gridsearch
@@ -193,7 +196,9 @@ def init_approach():
     if Appr_ExemplarsDataset:
         appr_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
                                                                  **appr_exemplars_dataset_args.__dict__)
+
     utils.seed_everything(seed=args.seed)
+
     appr = Appr(net, device, **appr_kwargs)
 
     # init gridsearch
@@ -204,18 +209,17 @@ def init_approach():
         gridsearch = GridSearch(appr_ft, args.seed, gs_args.gridsearch_config, gs_args.gridsearch_acc_drop_thr,
                                 gs_args.gridsearch_hparam_decay, gs_args.gridsearch_max_num_searches)
 
+
 def log_args():
     logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__))
-    
+
+
 def init():
     global tstart
     tstart = time.time()
 
-    print(f'init')
-    # TODO: add seeds!!
     load_args()
     load_exp_name()
-    # TODO: seed here??? why?? there is seed here in original main
     init_cuda()
     print_args()
     init_logger()
@@ -320,6 +324,8 @@ def train():
     print('Done!')
 
     return acc_taw, acc_tag, forg_taw, forg_tag, logger.exp_path
+
+
 def init_model():
     if args.network in tvmodels:  # torchvision models
         tvnet = getattr(importlib.import_module(name='torchvision.models'), args.network)
@@ -332,9 +338,10 @@ def init_model():
         base_net = getattr(importlib.import_module(name='.networks', package='facil'), args.network)
         # WARNING: fixed to pretrained False for other model (non-torchvision)
         init_model = base_net(pretrained=False)
-    
+
     global net
     net = LLL_Net(init_model, remove_existing_head=not args.keep_existing_head)
+
 
 def init_base_model():
     if args.network in tvmodels:  # torchvision models
@@ -354,7 +361,7 @@ def init_cuda():
     if args.no_cudnn_deterministic:
         logger.log_print('WARNING: CUDNN Deterministic will be disabled.')
         utils.cudnn_deterministic = False
-    
+
     global device
 
     # Args -- CUDA
@@ -365,18 +372,15 @@ def init_cuda():
         logger.log_logger.log_print('WARNING: [CUDA unavailable] Using CPU instead!')
         device = 'cpu'
 
+
 def load_exp_name():
     global full_exp_name
-
     full_exp_name = reduce((lambda x, y: x[0] + y[0]), args.datasets) if len(args.datasets) > 0 else args.datasets[0]
     full_exp_name += '_' + args.approach
     if args.exp_name is not None:
         full_exp_name += '_' + args.exp_name
 
 
-
 def init_logger():
-    # Initialize logger
     global logger
-
     logger = MultiLogger(args.results_path, full_exp_name, loggers=args.log, save_models=args.save_models)
