@@ -73,7 +73,7 @@ def load_base_args():
                         help='Learning approach used (default=%(default)s)', metavar="APPROACH")
     parser.add_argument('--nepochs', default=200, type=int, required=False,
                         help='Number of epochs per training session (default=%(default)s)')
-    parser.add_argument('--lr', default=None, nargs='+',  type=float,
+    parser.add_argument('--lr', default=[0.1], nargs='+',  type=float,
                         help='List of starting learning rates for each task. If length is less than number of tasks, will be filled with last learning-rate. If length is greather than number of tasks, will be stripped. (default=%(default)s)')
     parser.add_argument('--lr-min', default=1e-4, type=float, required=False,
                         help='Minimum learning rate (default=%(default)s)')
@@ -108,7 +108,6 @@ def load_base_args():
 
     # extend/strip learning-rate list to numer of tasks
     if len(args.lr) < args.num_tasks:
-        breakpoint()
         args.lr.extend([args.lr[-1] for _ in range(args.num_tasks - len(args.lr))])
     elif len(args.lr) > args.num_tasks:
         args.lr = args.lr[:args.num_tasks]
@@ -202,19 +201,19 @@ def init_approach():
     first_train_ds = trn_loader[0].dataset
     transform, class_indices = first_train_ds.transform, first_train_ds.class_indices
     appr_kwargs = appr_args.__dict__
+    base_appr_kwargs = dict(**base_kwargs)
     if Appr_ExemplarsDataset:
-        base_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
+        base_appr_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
                                                                  **appr_exemplars_dataset_args.__dict__)
 
     utils.seed_everything(seed=args.seed)
 
-    appr = Appr(net, device, base_kwargs, **appr_kwargs)
+    appr = Appr(net, device, base_appr_kwargs, **appr_kwargs)
 
     # init gridsearch
     if args.gridsearch_tasks > 0:
-        ft_kwargs = {**base_kwargs, **dict(logger=logger,
-                                           exemplars_dataset=GridSearch_ExemplarsDataset(transform, class_indices))}
-        appr_ft = Appr_finetuning(net, device, **ft_kwargs)
+        base_appr_kwargs = dict(**base_kwargs, exemplars_dataset=GridSearch_ExemplarsDataset(transform, class_indices))
+        appr_ft = Appr_finetuning(net, device, base_appr_kwargs, all_outputs=False)
         gridsearch = GridSearch(appr_ft, args.seed, gs_args.gridsearch_config, gs_args.gridsearch_acc_drop_thr,
                                 gs_args.gridsearch_hparam_decay, gs_args.gridsearch_max_num_searches)
 
