@@ -48,7 +48,7 @@ class Appr(Inc_Learning_Appr):
             self.model.eval()
             for images, targets in trn_loader:
                 outputs = self.model(images.to(self.device))
-                scores = np.array(torch.cat(outputs, dim=1).data.cpu().numpy(), dtype=np.float)
+                scores = np.array(torch.cat(outputs, dim=1).data.cpu().numpy(), dtype=float)
                 for m in range(len(targets)):
                     if targets[m] < old_classes_number:
                         # computation of class means for past classes of the current state.
