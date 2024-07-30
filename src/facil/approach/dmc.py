@@ -14,12 +14,8 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/juntingzh/incremental-learning-baselines
     """
 
-    def __init__(self, model, device, nepochs=160, lr=0.1, lr_min=1e-4, lr_factor=10, lr_patience=8, clipgrad=10000,
-                 momentum=0, wd=0, multi_softmax=False, wu_nepochs=0, wu_lr_factor=1, fix_bn=False, eval_on_train=False,
-                 logger=None, exemplars_dataset=None, aux_dataset='imagenet_32', aux_batch_size=128):
-        super(Appr, self).__init__(model, device, nepochs, lr, lr_min, lr_factor, lr_patience, clipgrad, momentum, wd,
-                                   multi_softmax, wu_nepochs, wu_lr_factor, fix_bn, eval_on_train, logger,
-                                   exemplars_dataset)
+    def __init__(self, model, device, base_appr_args, aux_dataset, aux_batch_size):
+        super(Appr, self).__init__(model, device, **base_appr_args)
         self.model_old = None
         self.model_new = None
         self.aux_dataset = aux_dataset

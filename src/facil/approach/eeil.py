@@ -16,13 +16,9 @@ class Appr(Inc_Learning_Appr):
     Helpful code from https://github.com/arthurdouillard/incremental_learning.pytorch
     """
 
-    def __init__(self, model, device, nepochs=90, lr=0.1, lr_min=1e-6, lr_factor=10, lr_patience=5, clipgrad=10000,
-                 momentum=0.9, wd=0.0001, multi_softmax=False, wu_nepochs=0, wu_lr_factor=1, fix_bn=False,
-                 eval_on_train=False, logger=None, exemplars_dataset=None, lamb=1.0, T=2, lr_finetuning_factor=0.1,
-                 nepochs_finetuning=40, noise_grad=False):
-        super(Appr, self).__init__(model, device, nepochs, lr, lr_min, lr_factor, lr_patience, clipgrad, momentum, wd,
-                                   multi_softmax, wu_nepochs, wu_lr_factor, fix_bn, eval_on_train, logger,
-                                   exemplars_dataset)
+    def __init__(self, model, device, base_appr_args, lamb, T, lr_finetuning_factor,
+                 nepochs_finetuning, noise_grad):
+        super(Appr, self).__init__(model, device, **base_appr_args)
         self.model_old = None
         self.lamb = lamb
         self.T = T
