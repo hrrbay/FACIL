@@ -11,7 +11,7 @@
 original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # the final commit of package-like facil
 # package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
-package_commit=55b87831cbdd36e986465dc3636fa77e9ed20845
+package_commit=ecdd0889749f0ef1dc1fe1e7fccd86555e2af6c3
 
 # args
 nepochs=5
