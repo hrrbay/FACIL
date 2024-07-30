@@ -73,8 +73,8 @@ def load_base_args():
                         help='Learning approach used (default=%(default)s)', metavar="APPROACH")
     parser.add_argument('--nepochs', default=200, type=int, required=False,
                         help='Number of epochs per training session (default=%(default)s)')
-    parser.add_argument('--lr', default=0.1, type=float, required=False,
-                        help='Starting learning rate (default=%(default)s)')
+    parser.add_argument('--lr', default=None, nargs='+',  type=float,
+                        help='List of starting learning rates for each task. If length is less than number of tasks, will be filled with last learning-rate. If length is greather than number of tasks, will be stripped. (default=%(default)s)')
     parser.add_argument('--lr-min', default=1e-4, type=float, required=False,
                         help='Minimum learning rate (default=%(default)s)')
     parser.add_argument('--lr-factor', default=3, type=float, required=False,
@@ -105,6 +105,13 @@ def load_base_args():
     global args, extra_args
     args, extra_args = parser.parse_known_args(sys.argv)
     args.results_path = os.path.expanduser(args.results_path)
+
+    # extend/strip learning-rate list to num_tasks
+    if len(args.lr) < args.num_tasks:
+        breakpoint()
+        args.lr.extend([args.lr[-1] for _ in range(args.num_tasks - len(args.lr))])
+    elif len(args.lr) > args.num_tasks:
+        args.lr = args.lr[:args.num_tasks]
 
     global base_kwargs
     base_kwargs = dict(nepochs=args.nepochs, lr=args.lr, lr_min=args.lr_min, lr_factor=args.lr_factor,
@@ -172,6 +179,8 @@ def print_args():
             print('\t' + arg + ':', getattr(gs_args, arg))
         print('=' * 108)
 
+def log_args():
+    logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__, **gs_args.__dict__))
 
 def load_data():
     global trn_loader, val_loader, tst_loader, taskcla, max_task
@@ -208,11 +217,6 @@ def init_approach():
         appr_ft = Appr_finetuning(net, device, **ft_kwargs)
         gridsearch = GridSearch(appr_ft, args.seed, gs_args.gridsearch_config, gs_args.gridsearch_acc_drop_thr,
                                 gs_args.gridsearch_hparam_decay, gs_args.gridsearch_max_num_searches)
-
-
-def log_args():
-    logger.log_args(argparse.Namespace(**args.__dict__, **appr_args.__dict__, **appr_exemplars_dataset_args.__dict__))
-
 
 def init():
     global tstart

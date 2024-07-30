@@ -16,7 +16,8 @@ class Inc_Learning_Appr:
         self.model = model
         self.device = device
         self.nepochs = nepochs
-        self.lr = lr
+        self.learning_rates = lr
+        self.lr = lr[0]
         self.lr_min = lr_min
         self.lr_factor = lr_factor
         self.lr_patience = lr_patience
@@ -27,7 +28,7 @@ class Inc_Learning_Appr:
         self.logger = logger
         self.exemplars_dataset = exemplars_dataset
         self.warmup_epochs = wu_nepochs
-        self.warmup_lr = lr * wu_lr_factor
+        self.warmup_lr = self.lr * wu_lr_factor
         self.warmup_loss = torch.nn.CrossEntropyLoss()
         self.fix_bn = fix_bn
         self.eval_on_train = eval_on_train
@@ -58,6 +59,8 @@ class Inc_Learning_Appr:
 
     def pre_train_process(self, t, trn_loader):
         """Runs before training all epochs of the task (before the train session)"""
+        # update learning-rate
+        self.lr = self.learning_rates[t]
 
         # Warm-up phase
         if self.warmup_epochs and t > 0:
