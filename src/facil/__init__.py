@@ -106,7 +106,7 @@ def load_base_args():
     args, extra_args = parser.parse_known_args(sys.argv)
     args.results_path = os.path.expanduser(args.results_path)
 
-    # extend/strip learning-rate list to num_tasks
+    # extend/strip learning-rate list to numer of tasks
     if len(args.lr) < args.num_tasks:
         breakpoint()
         args.lr.extend([args.lr[-1] for _ in range(args.num_tasks - len(args.lr))])
