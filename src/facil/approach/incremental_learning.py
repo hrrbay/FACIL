@@ -59,12 +59,14 @@ class Inc_Learning_Appr:
 
     def pre_train_process(self, t, trn_loader):
         """Runs before training all epochs of the task (before the train session)"""
+
         # update learning-rate
         if len(self.learning_rates) < t+1:
             self.lr = self.learning_rates[-1]
         else:
             self.lr = self.learning_rates[t]
 
+        print(f'{self.lr=}')
         # Warm-up phase
         if self.warmup_epochs and t > 0:
             self.optimizer = torch.optim.SGD(self.model.heads[-1].parameters(), lr=self.warmup_lr)
@@ -104,6 +106,7 @@ class Inc_Learning_Appr:
     def train_loop(self, t, trn_loader, val_loader):
         """Contains the epochs loop"""
         lr = self.lr
+        print(f'{lr=}')
         best_loss = np.inf
         patience = self.lr_patience
         best_model = self.model.get_copy()
