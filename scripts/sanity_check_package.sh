@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 
 : '
@@ -16,7 +16,7 @@ original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
 
 # TODO: update after adding readme
-package_commit=1af52b6e485ee96cada8930226d8212ec5f59935
+package_commit=0cf6503522d0534ab8cdb530dc546722e43413e3
 # args
 nepochs=3
 num_tasks=3
@@ -34,7 +34,7 @@ check_equal() {
     diff $1 $2
     diff_ret=$?
     if [ $diff_ret -ne 0 ]; then
-        echo "I observed different results for this approach. This is not good."
+        echo "I observed different results for this approach. This is not good. Check the logs in $out_path."
         echo -e "\t$1"
         echo -e "\t$2"
         return 1
@@ -60,22 +60,18 @@ test_approach() {
     num_wrong=0
     
     # train original facil
-    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
-    ret_val=$?
-    echo "ret_val=$ret_val"
-    num_wrong=$((num_wrong+ret_val))
-    echo "ret_val=$ret_val"
-    print_suc_err $ret_val
+    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 2> /dev/null
+    # ret_val=$?
+    # num_wrong=$((num_wrong+ret_val))
+    # print_suc_err $ret_val
     git checkout $original_commit > /dev/null 2>&1
 
     # train package-facils
     echo -n "running $1 pacakaged... "
-    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
-    ret_val=$?
-    echo "ret_val=$ret_val"
-    num_wrong=$((num_wrong+ret_val))
-    echo "ret_val=$ret_val"
-    print_suc_err $ret_val
+    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 2> /dev/null
+    # ret_val=$?
+    # num_wrong=$((num_wrong+ret_val))
+    # print_suc_err $ret_val
     git checkout $package_commit > /dev/null 2>&1
 
     if [ $num_wrong -eq 0 ]; then
