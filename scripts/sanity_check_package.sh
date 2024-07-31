@@ -4,17 +4,21 @@
 : '
     This script sanity-checks the last original facil commit (see below) against the packaged version.
 
-    This is done by comparing results for all approaches except DMC. DMC is skipped as it requires ImageNet.
+    This is done by comparing results for all approaches. Note that DMC and LUCIR are expected to crash.
+        - DMC requires imagenet
+        - LUCIR does not run on original version itself (at least not with the arguments used here)
+    
 '
 
 # the commit before converting facil to package-like
 original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # the final commit of package-like facil
 # package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
-package_commit=ecdd0889749f0ef1dc1fe1e7fccd86555e2af6c3
 
+# TODO: update after adding readme
+package_commit=1af52b6e485ee96cada8930226d8212ec5f59935
 # args
-nepochs=5
+nepochs=3
 num_tasks=3
 gridsearch_tasks=3
 num_exemplars=20
@@ -52,38 +56,48 @@ test_approach() {
     Train an approach ($1) with both, the original facil, and the packaged version and then run diff on results.
     Most parameters are fixed above, with $2 being --num-exemplars.
     '
-    echo "running $1 original."
+    echo -n "running $1 original... "
+    num_wrong=0
+    
     # train original facil
-    python3 main_incremental.py --approach $1 --dataset $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist > /dev/null 2>&1 
+    python3 main_incremental.py --approach $1 --dataset $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
+    ret_val=$?
+    num_wrong=$((num_wrong+ret_val))
+    print_suc_err $ret_val
     git checkout $original_commit > /dev/null 2>&1
 
     # train package-facils
-    echo "running $1 pacakaged."
-    python3 main_incremental.py --approach $1 --dataset $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist > /dev/null 2>&1
+    echo -n "running $1 pacakaged... "
+    python3 main_incremental.py --approach $1 --dataset $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
+    ret_val=$?
+    num_wrong=$((num_wrong+ret_val))
+    print_suc_err $ret_val
     git checkout $package_commit > /dev/null 2>&1
 
-    # count number of errors for approach
-    num_wrong=0
+    if [ $num_wrong -eq 0 ]; then
+        # count number of errors for approach
+        echo -n "checking task-aware... "
+        # check equal results taw
+        original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_taw* | head -1)
+        package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_taw* | head -1)
 
-    echo -n "checking task-aware... "
-    # check equal results taw
-    original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_taw* | head -1)
-    package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_taw* | head -1)
-
-    check_equal $original $package
-    num_wrong=$((num_wrong+$?))
-    print_suc_err $?
+        check_equal $original $package
+        
+        ret_val=$?
+        num_wrong=$((num_wrong+ret_val))
+        print_suc_err $ret_val
 
 
-    echo -n "checking task-agnostic... "
-    # check equal results tag
-    original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_tag* | head -1)
-    package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_tag* | head -1)
+        echo -n "checking task-agnostic... "
+        # check equal results tag
+        original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_tag* | head -1)
+        package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_tag* | head -1)
 
-    check_equal $original $package
-    num_wrong=$((num_wrong+$?))
-    print_suc_err $?
-
+        check_equal $original $package
+        ret_val=$?
+        num_wrong=$((num_wrong+ret_val))
+        print_suc_err $ret_val
+    fi
     # only count errors once for approach.
     if [ $num_wrong -gt 0 ]; then
         num_errors=$((num_errors+1))
@@ -94,12 +108,11 @@ test_approach() {
 }
 
 # NOTE: we have to run joint and dmc separately as they do not take exemplars but bic needs them
-test_approach dmc 0
-test_approach joint 0
+test_approach dmc 0 
+test_approach joint 0 
 
-
-for approach in bic eeil ewc finetuning freezing icarl il2m lucir lwf lwm mas path_integral r_walk; do
-    test_approach $approach 20
+for approach in bic dmc eeil ewc finetuning freezing icarl il2m lucir lwf lwm mas path_integral r_walk; do
+    test_approach $approach 20 
 done
 
 if [ $num_errors -eq 0 ]; then
