@@ -224,7 +224,6 @@ def init_approach():
     first_train_ds = trn_loader[0].dataset
     transform, class_indices = first_train_ds.transform, first_train_ds.class_indices
     appr_kwargs = {**base_kwargs, **appr_args.__dict__}
-    base_appr_kwargs = dict(**base_kwargs)
     if Appr_ExemplarsDataset:
         appr_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
                                                                  **appr_exemplars_dataset_args.__dict__)
@@ -235,8 +234,8 @@ def init_approach():
 
     # init gridsearch
     if args.gridsearch_tasks > 0:
-        base_appr_kwargs = dict(**base_kwargs, exemplars_dataset=GridSearch_ExemplarsDataset(transform, class_indices))
-        appr_ft = Appr_finetuning(net, device, base_appr_kwargs, all_outputs=False)
+        ft_kwargs = dict(**base_kwargs, exemplars_dataset=GridSearch_ExemplarsDataset(transform, class_indices), all_outputs=False)
+        appr_ft = Appr_finetuning(net, device, **ft_kwargs)
         gridsearch = GridSearch(appr_ft, args.seed, gs_args.gridsearch_config, gs_args.gridsearch_acc_drop_thr,
                                 gs_args.gridsearch_hparam_decay, gs_args.gridsearch_max_num_searches)
 
