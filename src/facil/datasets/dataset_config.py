@@ -14,6 +14,13 @@ dataset_config = {
         # 'pad': 2,
         # 'normalize': ((0.1,), (0.2752,))    # values including padding
     },
+    'mnist_3c': {
+        # 3-channel mnist
+        'path': join(_BASE_DATA_PATH, 'mnist'),
+        'extend_channel': 3,
+        'pad': 2,
+        'normalize': ((0.1,), (0.2752,))    # values including padding
+    },
     'svhn': {
         'path': join(_BASE_DATA_PATH, 'svhn'),
         'resize': (224, 224),
