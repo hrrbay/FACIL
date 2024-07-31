@@ -60,7 +60,7 @@ test_approach() {
     num_wrong=0
     
     # train original facil
-    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 2> /dev/null
+    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
     # ret_val=$?
     # num_wrong=$((num_wrong+ret_val))
     # print_suc_err $ret_val
@@ -68,7 +68,7 @@ test_approach() {
 
     # train package-facils
     echo -n "running $1 pacakaged... "
-    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 2> /dev/null
+    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
     # ret_val=$?
     # num_wrong=$((num_wrong+ret_val))
     # print_suc_err $ret_val
