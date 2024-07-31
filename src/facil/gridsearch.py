@@ -57,7 +57,7 @@ class GridSearch:
         for curr_lr in list_lr:
             utils.seed_everything(seed=self.seed)
             self.appr_ft.model = deepcopy(model)
-            self.appr_ft.lr = curr_lr
+            self.appr_ft.learning_rates = [curr_lr]
             self.appr_ft.train(t, trn_loader, val_loader)
             _, ft_acc_taw, _ = self.appr_ft.eval(t, val_loader)
             if ft_acc_taw > best_ft_acc:

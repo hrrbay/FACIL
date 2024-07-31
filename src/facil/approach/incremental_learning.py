@@ -60,7 +60,10 @@ class Inc_Learning_Appr:
     def pre_train_process(self, t, trn_loader):
         """Runs before training all epochs of the task (before the train session)"""
         # update learning-rate
-        self.lr = self.learning_rates[t]
+        if len(self.learning_rates) < t+1:
+            self.lr = self.learning_rates[-1]
+        else:
+            self.lr = self.learning_rates[t]
 
         # Warm-up phase
         if self.warmup_epochs and t > 0:

@@ -257,20 +257,6 @@ def init_model():
     net = LLL_Net(init_model, remove_existing_head=not args.keep_existing_head)
 
 
-def init_base_model():
-    if args.network in tvmodels:  # torchvision models
-        tvnet = getattr(importlib.import_module(name='torchvision.models'), args.network)
-        if args.network == 'googlenet':
-            init_model = tvnet(pretrained=args.pretrained, aux_logits=False)
-        else:
-            init_model = tvnet(pretrained=args.pretrained)
-        set_tvmodel_head_var(init_model)
-    else:  # other models declared in networks package's init
-        net = getattr(importlib.import_module(name='.networks', package='facil'), args.network)
-        # WARNING: fixed to pretrained False for other model (non-torchvision)
-        init_model = net(pretrained=False)
-
-
 def init_cuda():
     if args.no_cudnn_deterministic:
         logger.log_print('WARNING: CUDNN Deterministic will be disabled.')
