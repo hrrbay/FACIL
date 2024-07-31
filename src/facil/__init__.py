@@ -223,15 +223,15 @@ def init_approach():
 
     first_train_ds = trn_loader[0].dataset
     transform, class_indices = first_train_ds.transform, first_train_ds.class_indices
-    appr_kwargs = appr_args.__dict__
+    appr_kwargs = {**base_kwargs, **appr_args.__dict__}
     base_appr_kwargs = dict(**base_kwargs)
     if Appr_ExemplarsDataset:
-        base_appr_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
+        appr_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
                                                                  **appr_exemplars_dataset_args.__dict__)
 
     utils.seed_everything(seed=args.seed)
 
-    appr = Appr(net, device, base_appr_kwargs, **appr_kwargs)
+    appr = Appr(net, device, **appr_kwargs)
 
     # init gridsearch
     if args.gridsearch_tasks > 0:

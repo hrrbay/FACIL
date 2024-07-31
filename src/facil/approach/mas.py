@@ -12,7 +12,7 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/rahafaljundi/MAS-Memory-Aware-Synapses
     """
 
-    def __init__(self, model, device, base_appr_args, lamb, alpha, fi_num_samples):
+    def __init__(self, model, device, *, lamb, alpha, fi_num_samples, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
 
         self.lamb = lamb

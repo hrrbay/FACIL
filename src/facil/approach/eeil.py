@@ -16,8 +16,8 @@ class Appr(Inc_Learning_Appr):
     Helpful code from https://github.com/arthurdouillard/incremental_learning.pytorch
     """
 
-    def __init__(self, model, device, base_appr_args, lamb, T, lr_finetuning_factor,
-                 nepochs_finetuning, noise_grad):
+    def __init__(self, model, device, *, lamb, T, lr_finetuning_factor,
+                 nepochs_finetuning, noise_grad, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
         self.model_old = None
         self.lamb = lamb

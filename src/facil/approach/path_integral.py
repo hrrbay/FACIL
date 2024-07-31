@@ -11,7 +11,7 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/ganguli-lab/pathint
     """
 
-    def __init__(self, model, device, base_appr_args, lamb, damping):
+    def __init__(self, model, device, *, lamb, damping, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
         
         self.lamb = lamb

@@ -12,8 +12,8 @@ class Appr(Inc_Learning_Appr):
     http://openaccess.thecvf.com/content_ECCV_2018/papers/Arslan_Chaudhry__Riemannian_Walk_ECCV_2018_paper.pdf
     """
 
-    def __init__(self, model, device, base_appr_args, lamb, alpha, damping, fim_sampling_type,
-                 fim_num_samples):
+    def __init__(self, model, device, *, lamb, alpha, damping, fim_sampling_type,
+                 fim_num_samples, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
 
         self.lamb = lamb

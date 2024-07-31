@@ -16,7 +16,7 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/srebuffi/iCaRL
     """
 
-    def __init__(self, model, device, base_appr_args, lamb):
+    def __init__(self, model, device, *, lamb, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
 
         self.model_old = None

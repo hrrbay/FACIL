@@ -11,8 +11,8 @@ class Appr(Inc_Learning_Appr):
     described in http://arxiv.org/abs/1612.00796
     """
 
-    def __init__(self, model, device, base_appr_args, lamb, alpha, fi_sampling_type,
-                 fi_num_samples=-1):
+    def __init__(self, model, device, lamb, alpha, fi_sampling_type,
+                 fi_num_samples, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
         
         self.lamb = lamb

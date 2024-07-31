@@ -9,14 +9,16 @@ from ..networks.network import LLL_Net
 from .incremental_learning import Inc_Learning_Appr
 from ..datasets.exemplars_dataset import ExemplarsDataset
 
+import facil
+
 
 class Appr(Inc_Learning_Appr):
     """Class implementing the Learning without Memorizing (LwM) approach
     described in http://arxiv.org/abs/1811.08051
     """
 
-    def __init__(self, model, device, base_appr_args, beta, gamma, gradcam_layer,
-                 log_gradcam_samples):
+    def __init__(self, model, device, *, beta, gamma, gradcam_layer,
+                 log_gradcam_samples, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
 
         self.beta = beta
@@ -67,8 +69,8 @@ class Appr(Inc_Learning_Appr):
 
     def _save_gradcam_examples(self, t, trn_loader):
         self._take_samples_for_current_task(trn_loader)
-        output_orig_filename = os.path.join(self.logger.exp_path, '{t}_orig_post_train.png'.format(t=t))
-        output_map_filename = os.path.join(self.logger.exp_path, '{t}_gcam_post_train.png'.format(t=t))
+        output_orig_filename = os.path.join(facil.logger.exp_path, '{t}_orig_post_train.png'.format(t=t))
+        output_map_filename = os.path.join(facil.logger.exp_path, '{t}_gcam_post_train.png'.format(t=t))
         print('Task {} - Saving {} samples to: {}'.format(t, self.log_gradcam_samples, output_orig_filename))
         save_image(torch.cat(self._samples_to_log_X), output_orig_filename, normalize=True, nrow=(t + 1))
         print('Task {} - Saving {} samples with heatmaps to: {}'.format(t, self.log_gradcam_samples, output_map_filename))

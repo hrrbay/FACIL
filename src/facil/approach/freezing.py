@@ -8,7 +8,7 @@ from ..datasets.exemplars_dataset import ExemplarsDataset
 class Appr(Inc_Learning_Appr):
     """Class implementing the freezing baseline"""
 
-    def __init__(self, model, device, base_appr_args, freeze_after, all_outputs):
+    def __init__(self, model, device, *, freeze_after, all_outputs, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
 
         self.freeze_after = freeze_after

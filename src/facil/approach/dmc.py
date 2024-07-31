@@ -14,7 +14,7 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/juntingzh/incremental-learning-baselines
     """
 
-    def __init__(self, model, device, base_appr_args, aux_dataset, aux_batch_size):
+    def __init__(self, model, device, *, aux_dataset, aux_batch_size, **base_appr_args):
         super(Appr, self).__init__(model, device, **base_appr_args)
         self.model_old = None
         self.model_new = None
@@ -75,10 +75,10 @@ class Appr(Inc_Learning_Appr):
         """Contains the epochs loop"""
         if t > 0:
             # Args for the new data trainer and for the student trainer are the same
-            dmc_args = dict(nepochs=self.nepochs, lr=self.lr, lr_min=self.lr_min, lr_factor=self.lr_factor,
+            dmc_args = dict(nepochs=self.nepochs, lr=self.learning_rates, lr_min=self.lr_min, lr_factor=self.lr_factor,
                             lr_patience=self.lr_patience, clipgrad=self.clipgrad, momentum=self.momentum,
                             wd=self.wd, multi_softmax=self.multi_softmax, wu_nepochs=self.warmup_epochs,
-                            wu_lr_factor=self.warmup_lr, fix_bn=self.fix_bn, logger=self.logger)
+                            wu_lr_factor=self.warmup_lr, fix_bn=self.fix_bn)
             # Train new model in new data
             new_trainer = NewTaskTrainer(self.model_new, self.device, **dmc_args)
             new_trainer.train_loop(t, trn_loader, val_loader)
