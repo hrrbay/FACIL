@@ -4,9 +4,8 @@
 : '
     This script sanity-checks the last original facil commit (see below) against the packaged version.
 
-    This is done by comparing results for all approaches. Note that DMC and LUCIR are expected to crash.
-        - DMC requires imagenet
-        - LUCIR does not run on original version itself (at least not with the arguments used here)
+    This is done by comparing results for all approaches. 
+    Note that LUCIR is expected to crash as it does not run on original version itself (at least not with arguments used here).
     
 '
 
@@ -16,7 +15,8 @@ original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
 
 # TODO: update after adding readme
-package_commit=a3669e8c8e9f4d65f794c500fa44967a89d152cc
+# package_commit=389070bf1e016c60d13aff91718114b7df787acb
+package_commit=package
 # args
 nepochs=2
 num_tasks=2
