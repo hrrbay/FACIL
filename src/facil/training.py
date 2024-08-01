@@ -40,7 +40,7 @@ def train():
                 setattr(appr, tradeoff_name, best_tradeoff)
 
             print('-' * 108)
-        breakpoint()
+            
         # Train
         appr.train(t, trn_loader[t], val_loader[t])
         print('-' * 108)
