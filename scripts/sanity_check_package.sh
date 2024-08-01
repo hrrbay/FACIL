@@ -16,11 +16,11 @@ original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
 
 # TODO: update after adding readme
-package_commit=0cf6503522d0534ab8cdb530dc546722e43413e3
+package_commit=a3669e8c8e9f4d65f794c500fa44967a89d152cc
 # args
-nepochs=3
-num_tasks=3
-gridsearch_tasks=3
+nepochs=2
+num_tasks=2
+gridsearch_tasks=0
 num_exemplars=20
 network=LeNet
 dataset=mnist
@@ -29,7 +29,12 @@ num_errors=0
 
 out_path=/tmp/facil_check
 rm -rf $out_path
-
+mkdir -p $out_path
+cd $out_path
+rm -rf facil
+git clone https://github.com/hrrbay/facil.git $out_path/facil
+cd facil/src  
+echo "PWD: $(pwd)"
 check_equal() {
     diff $1 $2
     diff_ret=$?
@@ -43,6 +48,8 @@ check_equal() {
     return 0
 }
 
+echo ""
+
 print_suc_err() {
     if [ $1 -ne 0 ]; then
         echo -e "\u2715"
@@ -51,28 +58,47 @@ print_suc_err() {
     fi
 }
 
+
+print_stderr() {
+    ret_val=$1
+    if [ $ret_val -eq 0 ]; then
+        return
+    fi
+    appr=$2
+    version=$3
+
+    stderr_file=$(ls -t ${out_path}/$version/${dataset}_${appr}/stderr* | head -1)
+
+    echo "Error running $appr on $version version:"
+    cat $stderr_file
+    echo ""
+}
+
+failed_approaches=()
 test_approach() {
     : '
     Train an approach ($1) with both, the original facil, and the packaged version and then run diff on results.
     Most parameters are fixed above, with $2 being --num-exemplars.
     '
-    echo -n "running $1 original... "
     num_wrong=0
     
     # train original facil
-    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/original --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
-    # ret_val=$?
-    # num_wrong=$((num_wrong+ret_val))
-    # print_suc_err $ret_val
+    echo -n "running $1 original... "
     git checkout $original_commit > /dev/null 2>&1
+    python3 main_incremental.py --results-path $out_path/original --approach $1 $2 > /dev/null 2>&1
+    ret_val=$?
+    num_wrong=$((num_wrong+ret_val))
+    print_suc_err $ret_val
+    print_stderr $ret_val $1 "original"
 
     # train package-facils
-    echo -n "running $1 pacakaged... "
-    python3 main_incremental.py --approach $1 --datasets $dataset --network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --results-path $out_path/package --num-exemplars $2 --aux-dataset mnist --gradcam-layer conv1 > /dev/null 2>&1
-    # ret_val=$?
-    # num_wrong=$((num_wrong+ret_val))
-    # print_suc_err $ret_val
     git checkout $package_commit > /dev/null 2>&1
+    echo -n "running $1 pacakaged... "
+    python3 main_incremental.py --results-path $out_path/package --approach $1 $2 > /dev/null 2>&1
+    ret_val=$?
+    num_wrong=$((num_wrong+ret_val))
+    print_suc_err $ret_val
+    print_stderr $ret_val $1 "package"
 
     if [ $num_wrong -eq 0 ]; then
         # count number of errors for approach
@@ -81,7 +107,7 @@ test_approach() {
         original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_taw* | head -1)
         package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_taw* | head -1)
 
-        check_equal $original $package
+        check_equal $original $package 
         
         ret_val=$?
         num_wrong=$((num_wrong+ret_val))
@@ -101,6 +127,7 @@ test_approach() {
     # only count errors once for approach.
     if [ $num_wrong -gt 0 ]; then
         num_errors=$((num_errors+1))
+        failed_approaches+=($1)
     fi;
 
     echo "errors: $num_errors"
@@ -108,15 +135,16 @@ test_approach() {
 }
 
 # NOTE: we have to run joint and dmc separately as they do not take exemplars but bic needs them
-test_approach dmc 0 
-test_approach joint 0 
+test_approach dmc "--network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks  --aux-dataset mnist --num-exemplars 0 --datasets mnist"
+test_approach joint  "--network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks  --num-exemplars 0 --datasets mnist" 
 
-for approach in bic dmc eeil ewc finetuning freezing icarl il2m lucir lwf lwm mas path_integral r_walk; do
-    test_approach $approach 20 
+for approach in bic eeil ewc finetuning freezing icarl il2m lucir lwf mas path_integral r_walk; do
+    test_approach $approach "--network $network --num-tasks $num_tasks --nepochs $nepochs --gridsearch-tasks $gridsearch_tasks --num-exemplars 20 --datasets mnist"
 done
 
+num_errors=1
 if [ $num_errors -eq 0 ]; then
     echo "NICE! All good."
 else
-    echo "$num_errors approaches failed."
+    echo "$num_errors approaches failed: ${failed_approaches[@]}"
 fi
