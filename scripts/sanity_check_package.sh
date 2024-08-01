@@ -10,7 +10,7 @@
 '
 
 # the commit before converting facil to package-like
-original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
+original_commit=e09d2c83320a1aa945a6157d4875437515824dc9
 # the final commit of package-like facil
 # package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
 
@@ -18,9 +18,9 @@ original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # package_commit=389070bf1e016c60d13aff91718114b7df787acb
 package_commit=package
 # args
-nepochs=1
-num_tasks=2
-gridsearch_tasks=2
+nepochs=5
+num_tasks=3
+gridsearch_tasks=3
 num_exemplars=20
 network=LeNet
 dataset=mnist
@@ -28,13 +28,20 @@ dataset=mnist
 num_errors=0
 
 out_path=/tmp/facil_check
-rm -rf $out_path
 mkdir -p $out_path
 cd $out_path
+rm -rf original
 rm -rf facil
+rm -rf package
 git clone https://github.com/hrrbay/facil.git $out_path/facil
 cd facil/src  
 echo "PWD: $(pwd)"
+
+
+# set data-path to prev. default
+export DATA_PATH="../data"
+
+
 check_equal() {
     diff $1 $2
     diff_ret=$?
@@ -54,7 +61,7 @@ compare_stdout() {
     package=$(ls -t ${out_path}/package/mnist_${appr}/stdout* | head -1)
 
     echo "diff of stdout (original to package):"
-    diff -y $original $package
+    diff -y --suppress-common-lines $original $package
 }
 
 echo ""
@@ -79,8 +86,11 @@ print_stderr() {
     stderr_file=$(ls -t ${out_path}/$version/${dataset}_${appr}/stderr* | head -1)
 
     echo "Error running $appr on $version version:"
-    cat $stderr_file
+    if [ -f $sterr_file ]; then
+        cat $stderr_file
+    fi
     echo ""
+
 }
 
 failed_approaches=()
@@ -133,7 +143,7 @@ test_approach() {
         num_wrong=$((num_wrong+ret_val))
         print_suc_err $ret_val
 
-        compare_stdout $1
+        # compare_stdout $1
     fi
     # only count errors once for approach.
     if [ $num_wrong -gt 0 ]; then
