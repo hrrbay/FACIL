@@ -18,9 +18,9 @@ original_commit=66d94117a4b2b2bd5752278639d7ef6d385c73d8
 # package_commit=389070bf1e016c60d13aff91718114b7df787acb
 package_commit=package
 # args
-nepochs=2
+nepochs=1
 num_tasks=2
-gridsearch_tasks=0
+gridsearch_tasks=2
 num_exemplars=20
 network=LeNet
 dataset=mnist
@@ -46,6 +46,15 @@ check_equal() {
     fi
 
     return 0
+}
+
+compare_stdout() {
+    appr=$1
+    original=$(ls -t ${out_path}/original/mnist_${appr}/stdout* | head -1)
+    package=$(ls -t ${out_path}/package/mnist_${appr}/stdout* | head -1)
+
+    echo "diff of stdout (original to package):"
+    diff -y $original $package
 }
 
 echo ""
@@ -123,6 +132,8 @@ test_approach() {
         ret_val=$?
         num_wrong=$((num_wrong+ret_val))
         print_suc_err $ret_val
+
+        compare_stdout $1
     fi
     # only count errors once for approach.
     if [ $num_wrong -gt 0 ]; then
