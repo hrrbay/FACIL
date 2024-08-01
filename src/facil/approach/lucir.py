@@ -23,9 +23,9 @@ class Appr(Inc_Learning_Appr):
     def __init__(self, model, device, **kwargs):
         super(Appr, self).__init__(model, device, **kwargs)
         
-        self.less_forget = not kwargs['remove_less_forget']
-        self.margin_ranking = not kwargs['remove_margin_ranking']
-        self.adapt_lamda = not kwargs['remove_adapt_lamda']
+        self.less_forget = not self.remove_less_forget
+        self.margin_ranking = not self.remove_margin_ranking
+        self.adapt_lamda = not self.remove_adapt_lamda
 
         self.lamda = self.lamb
         self.ref_model = None

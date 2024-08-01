@@ -78,8 +78,8 @@ class Inc_Learning_Appr:
         else:
             self.lr = self.learning_rates[t]
 
-        print(f'{self.learning_rates=}')
-        print(f'{self.lr=}')
+        self.logger.log_print(f'{self.learning_rates=}')
+        self.logger.log_print(f'{self.lr=}')
 
         # Warm-up phase
         if self.warmup_epochs and t > 0:
@@ -112,7 +112,7 @@ class Inc_Learning_Appr:
                 total_num = len(trn_loader.dataset.labels)
                 trn_loss, trn_acc = total_loss / total_num, total_acc_taw / total_num
                 warmupclock2 = time.time()
-                print('| Warm-up Epoch {:3d}, time={:5.1f}s/{:5.1f}s | Train: loss={:.3f}, TAw acc={:5.1f}% |'.format(
+                self.logger.log_print('| Warm-up Epoch {:3d}, time={:5.1f}s/{:5.1f}s | Train: loss={:.3f}, TAw acc={:5.1f}% |'.format(
                     e + 1, warmupclock1 - warmupclock0, warmupclock2 - warmupclock1, trn_loss, 100 * trn_acc))
                 self.logger.log_scalar(task=t, iter=e + 1, name="loss", value=trn_loss, group="warmup")
                 self.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * trn_acc, group="warmup")
@@ -120,7 +120,7 @@ class Inc_Learning_Appr:
     def train_loop(self, t, trn_loader, val_loader):
         """Contains the epochs loop"""
         lr = self.lr
-        print(f'{lr=}')
+        self.logger.log_print(f'{lr=}')
         best_loss = np.inf
         patience = self.lr_patience
         best_model = self.model.get_copy()
@@ -136,18 +136,18 @@ class Inc_Learning_Appr:
             if self.eval_on_train:
                 train_loss, train_acc, _ = self.eval(t, trn_loader)
                 clock2 = time.time()
-                print('| Epoch {:3d}, time={:5.1f}s/{:5.1f}s | Train: loss={:.3f}, TAw acc={:5.1f}% |'.format(
+                self.logger.log_print('| Epoch {:3d}, time={:5.1f}s/{:5.1f}s | Train: loss={:.3f}, TAw acc={:5.1f}% |'.format(
                     e + 1, clock1 - clock0, clock2 - clock1, train_loss, 100 * train_acc), end='')
                 self.logger.log_scalar(task=t, iter=e + 1, name="loss", value=train_loss, group="train")
                 self.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * train_acc, group="train")
             else:
-                print('| Epoch {:3d}, time={:5.1f}s | Train: skip eval |'.format(e + 1, clock1 - clock0), end='')
+                self.logger.log_print('| Epoch {:3d}, time={:5.1f}s | Train: skip eval |'.format(e + 1, clock1 - clock0), end='')
 
             # Valid
             clock3 = time.time()
             valid_loss, valid_acc, _ = self.eval(t, val_loader)
             clock4 = time.time()
-            print(' Valid: time={:5.1f}s loss={:.3f}, TAw acc={:5.1f}% |'.format(
+            self.logger.log_print(' Valid: time={:5.1f}s loss={:.3f}, TAw acc={:5.1f}% |'.format(
                 clock4 - clock3, valid_loss, 100 * valid_acc), end='')
             self.logger.log_scalar(task=t, iter=e + 1, name="loss", value=valid_loss, group="valid")
             self.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * valid_acc, group="valid")
@@ -158,17 +158,17 @@ class Inc_Learning_Appr:
                 best_loss = valid_loss
                 best_model = self.model.get_copy()
                 patience = self.lr_patience
-                print(' *', end='')
+                self.logger.log_print(' *', end='')
             else:
                 # if the loss does not go down, decrease patience
                 patience -= 1
                 if patience <= 0:
                     # if it runs out of patience, reduce the learning rate
                     lr /= self.lr_factor
-                    print(' lr={:.1e}'.format(lr), end='')
+                    self.logger.log_print(' lr={:.1e}'.format(lr), end='')
                     if lr < self.lr_min:
                         # if the lr decreases below minimum, stop the training session
-                        print()
+                        self.logger.log_print()
                         break
                     # reset patience and recover best model so far to continue training
                     patience = self.lr_patience
@@ -176,7 +176,7 @@ class Inc_Learning_Appr:
                     self.model.set_state_dict(best_model)
             self.logger.log_scalar(task=t, iter=e + 1, name="patience", value=patience, group="train")
             self.logger.log_scalar(task=t, iter=e + 1, name="lr", value=lr, group="train")
-            print()
+            self.logger.log_print()
         self.model.set_state_dict(best_model)
 
     def post_train_process(self, t, trn_loader):

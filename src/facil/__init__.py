@@ -278,7 +278,7 @@ def init_cuda():
         torch.cuda.set_device(args.gpu)
         device = 'cuda'
     else:
-        logger.log_logger.log_print('WARNING: [CUDA unavailable] Using CPU instead!')
+        logger.log_print('WARNING: [CUDA unavailable] Using CPU instead!')
         device = 'cpu'
 
 

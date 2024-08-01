@@ -11,6 +11,7 @@ from torchvision.transforms import Lambda
 from .exemplars_dataset import ExemplarsDataset
 from ..networks.network import LLL_Net
 
+from facil import logger
 
 class ExemplarsSelector:
     """Exemplar selector for approaches with an interface of Dataset"""
@@ -29,7 +30,7 @@ class ExemplarsSelector:
         with override_dataset_transform(trn_loader.dataset, Lambda(lambda x: np.array(x))) as ds_for_raw:
             x, y = zip(*(ds_for_raw[idx] for idx in selected_indices))
         clock1 = time.time()
-        print('| Selected {:d} train exemplars, time={:5.1f}s'.format(len(x), clock1 - clock0))
+        logger.log_print('| Selected {:d} train exemplars, time={:5.1f}s'.format(len(x), clock1 - clock0))
         return x, y
 
     def _exemplars_per_class_num(self, model: LLL_Net):

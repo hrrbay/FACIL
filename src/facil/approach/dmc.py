@@ -84,9 +84,9 @@ class Appr(Inc_Learning_Appr):
             new_trainer.train_loop(t, trn_loader, val_loader)
             self.model_new.eval()
             self.model_new.freeze_all()
-            print('=' * 108)
-            print("Training of student")
-            print('=' * 108)
+            self.logger.log_print('=' * 108)
+            self.logger.log_print("Training of student")
+            self.logger.log_print('=' * 108)
             # Train student model using both old and new model
             student_trainer = StudentTrainer(self.model, self.model_new, self.model_old, self.device, **dmc_args)
             student_trainer.train_loop(t, self.aux_trn_loader, self.aux_val_loader)

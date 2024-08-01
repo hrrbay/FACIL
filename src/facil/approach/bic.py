@@ -72,7 +72,7 @@ class Appr(Inc_Learning_Appr):
         self.bias_layers.append(BiasLayer().to(self.device))
 
         # STAGE 0: EXEMPLAR MANAGEMENT -- select subset of validation to use in Stage 2 -- val_old, val_new (Fig.2)
-        print('Stage 0: Select exemplars from validation')
+        self.logger.log_print('Stage 0: Select exemplars from validation')
         clock0 = time.time()
 
         # number of classes and proto samples per class
@@ -117,7 +117,7 @@ class Appr(Inc_Learning_Appr):
         trn_loader.dataset.images = [trn_loader.dataset.images[idx] for idx in non_selected]
         trn_loader.dataset.labels = [trn_loader.dataset.labels[idx] for idx in non_selected]
         clock1 = time.time()
-        print(' > Selected {:d} validation exemplars, time={:5.1f}s'.format(
+        self.logger.log_print(' > Selected {:d} validation exemplars, time={:5.1f}s'.format(
             sum([len(elem) for elem in self.y_valid_exemplars]), clock1 - clock0))
 
         # make copy to keep the type of dataset for Stage 2 -- not efficient
@@ -131,7 +131,7 @@ class Appr(Inc_Learning_Appr):
                                                      pin_memory=trn_loader.pin_memory)
 
         # STAGE 1: DISTILLATION
-        print('Stage 1: Training model with distillation')
+        self.logger.log_print('Stage 1: Training model with distillation')
         super().train_loop(t, trn_loader, val_loader)
         # From LwF: Restore best and save model for future tasks
         self.model_old = deepcopy(self.model)
@@ -140,7 +140,7 @@ class Appr(Inc_Learning_Appr):
 
         # STAGE 2: BIAS CORRECTION
         if t > 0:
-            print('Stage 2: Training bias correction layers')
+            self.logger.log_print('Stage 2: Training bias correction layers')
             # Fill bic_val_loader with validation protoset
             if isinstance(bic_val_dataset.images, list):
                 bic_val_dataset.images = sum(self.x_valid_exemplars, [])
@@ -185,7 +185,7 @@ class Appr(Inc_Learning_Appr):
                 clock1 = time.time()
                 # reducing the amount of verbose
                 if (e + 1) % (self.num_bias_epochs / 4) == 0:
-                    print('| Epoch {:3d}, time={:5.1f}s | Train: loss={:.3f}, TAg acc={:5.1f}% |'.format(
+                    self.logger.log_print('| Epoch {:3d}, time={:5.1f}s | Train: loss={:.3f}, TAg acc={:5.1f}% |'.format(
                           e + 1, clock1 - clock0, total_loss / len(bic_val_loader.dataset.labels),
                           100 * total_acc / len(bic_val_loader.dataset.labels)))
             # Fix alpha and beta after learning them
@@ -194,7 +194,7 @@ class Appr(Inc_Learning_Appr):
 
         # Print all alpha and beta values
         for task in range(t + 1):
-            print('Stage 2: BiC training for Task {:d}: alpha={:.5f}, beta={:.5f}'.format(task,
+            self.logger.log_print('Stage 2: BiC training for Task {:d}: alpha={:.5f}, beta={:.5f}'.format(task,
                   self.bias_layers[task].alpha.item(), self.bias_layers[task].beta.item()))
 
         # STAGE 3: EXEMPLAR MANAGEMENT

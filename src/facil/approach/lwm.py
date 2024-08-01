@@ -66,9 +66,9 @@ class Appr(Inc_Learning_Appr):
         self._take_samples_for_current_task(trn_loader)
         output_orig_filename = os.path.join(self.logger.exp_path, '{t}_orig_post_train.png'.format(t=t))
         output_map_filename = os.path.join(self.logger.exp_path, '{t}_gcam_post_train.png'.format(t=t))
-        print('Task {} - Saving {} samples to: {}'.format(t, self.log_gradcam_samples, output_orig_filename))
+        self.logger.log_print('Task {} - Saving {} samples to: {}'.format(t, self.log_gradcam_samples, output_orig_filename))
         save_image(torch.cat(self._samples_to_log_X), output_orig_filename, normalize=True, nrow=(t + 1))
-        print('Task {} - Saving {} samples with heatmaps to: {}'.format(t, self.log_gradcam_samples, output_map_filename))
+        self.logger.log_print('Task {} - Saving {} samples with heatmaps to: {}'.format(t, self.log_gradcam_samples, output_map_filename))
         X_with_gradcam = []
         with GradCAM(self.model_old, self.gradcam_layer) as gradcam:
             for X in self._samples_to_log_X:
@@ -259,9 +259,9 @@ class GradCAM:
         try:
             import cv2
         except ImportError:
-            print('Please install opencv library for visualization.\n')
-            print('For conda environment use command:')
-            print('conda install -c menpo opencv')
+            self.logger.log_print('Please install opencv library for visualization.\n')
+            self.logger.log_print('For conda environment use command:')
+            self.logger.log_print('conda install -c menpo opencv')
         with torch.no_grad():
             # upsample and normalize
             c, h, w = img.size()
