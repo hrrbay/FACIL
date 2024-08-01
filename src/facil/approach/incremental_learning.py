@@ -76,9 +76,6 @@ class Inc_Learning_Appr:
         else:
             self.lr = self.learning_rates[t]
 
-        self.logger.log_print(f'{self.learning_rates=}')
-        self.logger.log_print(f'{self.lr=}')
-
         # Warm-up phase
         if self.warmup_epochs and t > 0:
             self.optimizer = torch.optim.SGD(self.model.heads[-1].parameters(), lr=self.warmup_lr)
@@ -118,7 +115,7 @@ class Inc_Learning_Appr:
     def train_loop(self, t, trn_loader, val_loader):
         """Contains the epochs loop"""
         lr = self.lr
-        self.logger.log_print(f'{lr=}')
+        
         best_loss = np.inf
         patience = self.lr_patience
         best_model = self.model.get_copy()
