@@ -29,12 +29,21 @@ def init():
     global tstart
     tstart = time.time()
 
+    # load basic configuration
     load_args()
     load_exp_name()
     init_cuda()
+
     print_args()
+    
     init_logger()
+    # add logger to base-args for approach constructor
+    base_kwargs['logger'] = logger
+
+    # we can now start logging
     log_args()
+
+    # initialize model, data, approach
     utils.seed_everything()
     init_model()
     utils.seed_everything()
@@ -223,7 +232,7 @@ def init_approach():
 
     first_train_ds = trn_loader[0].dataset
     transform, class_indices = first_train_ds.transform, first_train_ds.class_indices
-    appr_kwargs = {**base_kwargs, **appr_args.__dict__}
+    appr_kwargs = {**base_kwargs, **appr_args.__dict__,}
     if Appr_ExemplarsDataset:
         appr_kwargs['exemplars_dataset'] = Appr_ExemplarsDataset(transform, class_indices,
                                                                  **appr_exemplars_dataset_args.__dict__)
