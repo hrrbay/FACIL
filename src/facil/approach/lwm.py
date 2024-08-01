@@ -64,8 +64,8 @@ class Appr(Inc_Learning_Appr):
 
     def _save_gradcam_examples(self, t, trn_loader):
         self._take_samples_for_current_task(trn_loader)
-        output_orig_filename = os.path.join(facil.logger.exp_path, '{t}_orig_post_train.png'.format(t=t))
-        output_map_filename = os.path.join(facil.logger.exp_path, '{t}_gcam_post_train.png'.format(t=t))
+        output_orig_filename = os.path.join(self.logger.exp_path, '{t}_orig_post_train.png'.format(t=t))
+        output_map_filename = os.path.join(self.logger.exp_path, '{t}_gcam_post_train.png'.format(t=t))
         print('Task {} - Saving {} samples to: {}'.format(t, self.log_gradcam_samples, output_orig_filename))
         save_image(torch.cat(self._samples_to_log_X), output_orig_filename, normalize=True, nrow=(t + 1))
         print('Task {} - Saving {} samples with heatmaps to: {}'.format(t, self.log_gradcam_samples, output_map_filename))

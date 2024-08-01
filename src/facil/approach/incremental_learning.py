@@ -13,7 +13,7 @@ class Inc_Learning_Appr:
 
     def __init__(self, model, device, nepochs, lr, lr_min, lr_factor, lr_patience, clipgrad,
                  momentum, wd, multi_softmax, wu_nepochs, wu_lr_factor, fix_bn,
-                 eval_on_train, exemplars_dataset: ExemplarsDataset, **appr_kwargs):
+                 eval_on_train, logger: ExperimentLogger = None, exemplars_dataset: ExemplarsDataset, **appr_kwargs):
         self.model = model
         self.device = device
         self.nepochs = nepochs
@@ -26,6 +26,7 @@ class Inc_Learning_Appr:
         self.momentum = momentum
         self.wd = wd
         self.multi_softmax = multi_softmax
+        self.logger = logger
         self.exemplars_dataset = exemplars_dataset
         self.warmup_epochs = wu_nepochs
         self.warmup_lr = self.lr * wu_lr_factor
@@ -111,8 +112,8 @@ class Inc_Learning_Appr:
                 warmupclock2 = time.time()
                 print('| Warm-up Epoch {:3d}, time={:5.1f}s/{:5.1f}s | Train: loss={:.3f}, TAw acc={:5.1f}% |'.format(
                     e + 1, warmupclock1 - warmupclock0, warmupclock2 - warmupclock1, trn_loss, 100 * trn_acc))
-                facil.logger.log_scalar(task=t, iter=e + 1, name="loss", value=trn_loss, group="warmup")
-                facil.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * trn_acc, group="warmup")
+                self.logger.log_scalar(task=t, iter=e + 1, name="loss", value=trn_loss, group="warmup")
+                self.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * trn_acc, group="warmup")
 
     def train_loop(self, t, trn_loader, val_loader):
         """Contains the epochs loop"""
@@ -135,8 +136,8 @@ class Inc_Learning_Appr:
                 clock2 = time.time()
                 print('| Epoch {:3d}, time={:5.1f}s/{:5.1f}s | Train: loss={:.3f}, TAw acc={:5.1f}% |'.format(
                     e + 1, clock1 - clock0, clock2 - clock1, train_loss, 100 * train_acc), end='')
-                facil.logger.log_scalar(task=t, iter=e + 1, name="loss", value=train_loss, group="train")
-                facil.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * train_acc, group="train")
+                self.logger.log_scalar(task=t, iter=e + 1, name="loss", value=train_loss, group="train")
+                self.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * train_acc, group="train")
             else:
                 print('| Epoch {:3d}, time={:5.1f}s | Train: skip eval |'.format(e + 1, clock1 - clock0), end='')
 
@@ -146,8 +147,8 @@ class Inc_Learning_Appr:
             clock4 = time.time()
             print(' Valid: time={:5.1f}s loss={:.3f}, TAw acc={:5.1f}% |'.format(
                 clock4 - clock3, valid_loss, 100 * valid_acc), end='')
-            facil.logger.log_scalar(task=t, iter=e + 1, name="loss", value=valid_loss, group="valid")
-            facil.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * valid_acc, group="valid")
+            self.logger.log_scalar(task=t, iter=e + 1, name="loss", value=valid_loss, group="valid")
+            self.logger.log_scalar(task=t, iter=e + 1, name="acc", value=100 * valid_acc, group="valid")
 
             # Adapt learning rate - patience scheme - early stopping regularization
             if valid_loss < best_loss:
@@ -171,8 +172,8 @@ class Inc_Learning_Appr:
                     patience = self.lr_patience
                     self.optimizer.param_groups[0]['lr'] = lr
                     self.model.set_state_dict(best_model)
-            facil.logger.log_scalar(task=t, iter=e + 1, name="patience", value=patience, group="train")
-            facil.logger.log_scalar(task=t, iter=e + 1, name="lr", value=lr, group="train")
+            self.logger.log_scalar(task=t, iter=e + 1, name="patience", value=patience, group="train")
+            self.logger.log_scalar(task=t, iter=e + 1, name="lr", value=lr, group="train")
             print()
         self.model.set_state_dict(best_model)
 
