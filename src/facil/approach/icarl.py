@@ -16,11 +16,10 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/srebuffi/iCaRL
     """
 
-    def __init__(self, model, device, *, lamb, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
 
         self.model_old = None
-        self.lamb = lamb
 
         # iCaRL is expected to be used with exemplars. If needed to be used without exemplars, overwrite here the
         # `_get_optimizer` function with the one in LwF and update the criterion

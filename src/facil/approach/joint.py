@@ -9,12 +9,11 @@ from ..datasets.exemplars_dataset import ExemplarsDataset
 class Appr(Inc_Learning_Appr):
     """Class implementing the joint baseline"""
 
-    def __init__(self, model, device, *, freeze_after, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
 
         self.trn_datasets = []
         self.val_datasets = []
-        self.freeze_after = freeze_after
 
         have_exemplars = self.exemplars_dataset.max_num_exemplars + self.exemplars_dataset.max_num_exemplars_per_class
         assert (have_exemplars == 0), 'Warning: Joint does not use exemplars. Comment this line to force it.'

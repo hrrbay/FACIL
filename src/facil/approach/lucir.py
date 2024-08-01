@@ -20,17 +20,12 @@ class Appr(Inc_Learning_Appr):
 
     # Sec. 4.1: "we used the method proposed in [29] based on herd selection" and "first one stores a constant number of
     # samples for each old class (e.g. R_per=20) (...) we adopt the first strategy"
-    def __init__(self, model, device, *, lamb, lamb_mr, dist, K,
-                 remove_less_forget, remove_margin_ranking, remove_adapt_lamda, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
         
-        self.lamb = lamb
-        self.lamb_mr = lamb_mr
-        self.dist = dist
-        self.K = K
-        self.less_forget = not remove_less_forget
-        self.margin_ranking = not remove_margin_ranking
-        self.adapt_lamda = not remove_adapt_lamda
+        self.less_forget = not kwargs['remove_less_forget']
+        self.margin_ranking = not kwargs['remove_margin_ranking']
+        self.adapt_lamda = not kwargs['remove_adapt_lamda']
 
         self.lamda = self.lamb
         self.ref_model = None

@@ -11,15 +11,9 @@ class Appr(Inc_Learning_Appr):
     described in http://arxiv.org/abs/1612.00796
     """
 
-    def __init__(self, model, device, lamb, alpha, fi_sampling_type,
-                 fi_num_samples, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
         
-        self.lamb = lamb
-        self.alpha = alpha
-        self.sampling_type = fi_sampling_type
-        self.num_samples = fi_num_samples
-
         # In all cases, we only keep importance weights for the model, but not for the heads.
         feat_ext = self.model.model
         # Store current parameters as the initial parameters before first task starts

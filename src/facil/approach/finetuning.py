@@ -8,10 +8,9 @@ from ..datasets.exemplars_dataset import ExemplarsDataset
 class Appr(Inc_Learning_Appr):
     """Class implementing the finetuning baseline"""
 
-    def __init__(self, model, device, *, all_outputs, **base_appr_args ):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
 
-        self.all_out = all_outputs
 
     @staticmethod
     def exemplars_dataset_class():

@@ -14,12 +14,10 @@ class Appr(Inc_Learning_Appr):
     # Weight decay of 0.0005 is used in the original article (page 4).
     # Page 4: "The warm-up step greatly enhances fine-tuning’s old-task performance, but is not so crucial to either our
     #  method or the compared Less Forgetting Learning (see Table 2(b))."
-    def __init__(self, model, device, *, lamb, T, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
 
         self.model_old = None
-        self.lamb = lamb
-        self.T = T
 
     @staticmethod
     def exemplars_dataset_class():

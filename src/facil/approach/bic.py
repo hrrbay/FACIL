@@ -15,16 +15,12 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/wuyuebupt/LargeScaleIncrementalLearning
     """
 
-    def __init__(self, model, device, *, val_exemplar_percentage,
-                 num_bias_epochs, T, lamb, **base_appr_args):
+    def __init__(self, model, device, **kwargs):
         # Sec. 6.1. CIFAR-100: 2,000 exemplars, ImageNet-1000: 20,000 exemplars, Celeb-10000: 50,000 exemplars
         # Sec. 6.2. weight decay for CIFAR-100 is 0.0002, for ImageNet-1000 and Celeb-10000 is 0.0001
-        super(Appr, self).__init__(model, device, **base_appr_args)
-        self.val_percentage = val_exemplar_percentage
-        self.bias_epochs = num_bias_epochs
+        super(Appr, self).__init__(model, device, **kwargs)
+
         self.model_old = None
-        self.T = T
-        self.lamb = lamb
         self.bias_layers = []
 
         self.x_valid_exemplars = []

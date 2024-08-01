@@ -13,7 +13,7 @@ class Inc_Learning_Appr:
 
     def __init__(self, model, device, nepochs, lr, lr_min, lr_factor, lr_patience, clipgrad,
                  momentum, wd, multi_softmax, wu_nepochs, wu_lr_factor, fix_bn,
-                 eval_on_train, exemplars_dataset: ExemplarsDataset):
+                 eval_on_train, exemplars_dataset: ExemplarsDataset, **appr_kwargs):
         self.model = model
         self.device = device
         self.nepochs = nepochs
@@ -33,6 +33,17 @@ class Inc_Learning_Appr:
         self.fix_bn = fix_bn
         self.eval_on_train = eval_on_train
         self.optimizer = None
+
+        # set approach-specific default arguments
+        default_args = self.extra_parser(None)[0].__dict__
+        for k, v in default_args.items():
+            setattr(self, k, v)
+
+        # overwrite approach-specific defaults with passed kwargs
+        for k, v in appr_kwargs.items():
+            assert k in default_args.keys(), f'Argument "{k}" is not defined in {self.__class__.__name__}.extra_parser!'
+            setattr(self, k, v)
+
 
     @staticmethod
     def extra_parser(args):

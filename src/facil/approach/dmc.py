@@ -14,12 +14,11 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/juntingzh/incremental-learning-baselines
     """
 
-    def __init__(self, model, device, *, aux_dataset, aux_batch_size, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
         self.model_old = None
         self.model_new = None
-        self.aux_dataset = aux_dataset
-        self.aux_batch_size = aux_batch_size
+        
         # get dataloader for auxiliar dataset
         aux_trn_ldr, _, aux_val_ldr, _ = get_loaders([self.aux_dataset], num_tasks=1, nc_first_task=None, validation=0,
                                                      batch_size=self.aux_batch_size, num_workers=4, pin_memory=False)

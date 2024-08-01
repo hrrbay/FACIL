@@ -17,14 +17,9 @@ class Appr(Inc_Learning_Appr):
     described in http://arxiv.org/abs/1811.08051
     """
 
-    def __init__(self, model, device, *, beta, gamma, gradcam_layer,
-                 log_gradcam_samples, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
 
-        self.beta = beta
-        self.gamma = gamma
-        self.gradcam_layer = gradcam_layer
-        self.log_gradcam_samples = log_gradcam_samples
         self.model_old = None
         self._samples_to_log_X = []
         self._samples_to_log_y = []

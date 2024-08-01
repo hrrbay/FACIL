@@ -10,8 +10,8 @@ class Appr(Inc_Learning_Appr):
     https://openaccess.thecvf.com/content_ICCV_2019/papers/Belouadah_IL2M_Class_Incremental_Learning_With_Dual_Memory_ICCV_2019_paper.pdf
     """
 
-    def __init__(self, model, device, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
         #
         self.init_classes_means = []
         self.current_classes_means = []
