@@ -80,12 +80,12 @@ class Appr(Inc_Learning_Appr):
         num_old_cls = sum(self.model.task_cls[:t])
         if self.exemplars_dataset.max_num_exemplars != 0:
             num_exemplars_per_class = int(np.floor(self.num_exemplars / num_cls))
-            num_val_ex_cls = int(np.ceil(self.val_percentage * num_exemplars_per_class))
+            num_val_ex_cls = int(np.ceil(self.val_exemplar_percentage * num_exemplars_per_class))
             num_trn_ex_cls = num_exemplars_per_class - num_val_ex_cls
             # Reset max_num_exemplars
             self.exemplars_dataset.max_num_exemplars = (num_trn_ex_cls * num_cls).item()
         elif self.exemplars_dataset.max_num_exemplars_per_class != 0:
-            num_val_ex_cls = int(np.ceil(self.val_percentage * self.num_exemplars_per_class))
+            num_val_ex_cls = int(np.ceil(self.val_exemplar_percentage * self.num_exemplars_per_class))
             num_trn_ex_cls = self.num_exemplars_per_class - num_val_ex_cls
             # Reset max_num_exemplars 
             self.exemplars_dataset.max_num_exemplars_per_class = num_trn_ex_cls
@@ -94,7 +94,7 @@ class Appr(Inc_Learning_Appr):
         if t > 0:
             if self.exemplars_dataset.max_num_exemplars != 0:
                 num_exemplars_per_class = int(np.floor(self.num_exemplars / num_old_cls))
-                num_old_ex_cls = int(np.ceil(self.val_percentage * num_exemplars_per_class))
+                num_old_ex_cls = int(np.ceil(self.val_exemplar_percentage * num_exemplars_per_class))
                 for cls in range(num_old_cls):
                     assert (len(self.y_valid_exemplars[cls]) == num_old_ex_cls)
                     self.x_valid_exemplars[cls] = self.x_valid_exemplars[cls][:num_val_ex_cls]
