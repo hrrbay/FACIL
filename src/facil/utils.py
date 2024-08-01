@@ -5,7 +5,7 @@ import numpy as np
 
 cudnn_deterministic = True
 
-from facil import logger
+import facil
 
 def seed_everything(seed=0):
     """Fix all random seeds"""

@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 from . import utils
 
-from facil import logger
+import facil
 
 class GridSearch:
     """Basic class for implementing hyperparameter grid search"""
@@ -65,9 +65,9 @@ class GridSearch:
             if ft_acc_taw > best_ft_acc:
                 best_ft_acc = ft_acc_taw
                 best_ft_lr = curr_lr
-            logger.log_print('Current best LR: ' + str(best_ft_lr))
+            facil.logger.log_print('Current best LR: ' + str(best_ft_lr))
         self.gs_config.current_lr = best_ft_lr
-        logger.log_print('Current best acc: {:5.1f}'.format(best_ft_acc * 100))
+        facil.logger.log_print('Current best acc: {:5.1f}'.format(best_ft_acc * 100))
         # After first task, keep LR used
         if t == 0:
             self.lr_first = best_ft_lr
@@ -110,7 +110,7 @@ class GridSearch:
                 # train this iteration
                 appr_gs.train(t, trn_loader, val_loader)
                 _, curr_acc, _ = appr_gs.eval(t, val_loader)
-                logger.log_print('Current acc: ' + str(curr_acc) + ' for ' + tradeoff_name + '=' + str(best_tradeoff))
+                facil.logger.log_print('Current acc: ' + str(curr_acc) + ' for ' + tradeoff_name + '=' + str(best_tradeoff))
                 # Check if accuracy is within acceptable threshold drop
                 if curr_acc < ((1 - self.acc_drop_thr) * best_ft_acc):
                     best_tradeoff = best_tradeoff * self.hparam_decay
@@ -118,6 +118,6 @@ class GridSearch:
                     break
                 num_searches += 1
         else:
-            logger.log_print('There is no trade-off to gridsearch.')
+            facil.logger.log_print('There is no trade-off to gridsearch.')
 
         return best_tradeoff, tradeoff_name

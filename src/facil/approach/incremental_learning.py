@@ -6,8 +6,6 @@ from argparse import ArgumentParser
 from ..loggers.exp_logger import ExperimentLogger
 from ..datasets.exemplars_dataset import ExemplarsDataset
 
-import facil
-
 class Inc_Learning_Appr:
     """Basic class for implementing incremental learning approaches"""
 
