@@ -78,7 +78,9 @@ class Inc_Learning_Appr:
         else:
             self.lr = self.learning_rates[t]
 
+        print(f'{self.learning_rates=}')
         print(f'{self.lr=}')
+        
         # Warm-up phase
         if self.warmup_epochs and t > 0:
             self.optimizer = torch.optim.SGD(self.model.heads[-1].parameters(), lr=self.warmup_lr)

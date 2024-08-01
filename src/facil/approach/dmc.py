@@ -54,6 +54,7 @@ class Appr(Inc_Learning_Appr):
 
     def pre_train_process(self, t, trn_loader):
         """Runs before training all epochs of the task (before the train session)"""
+        super().pre_train_process(t, trn_loader)
         if t > 0:
             # Re-initialize model
             for m in self.model.modules():

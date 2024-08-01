@@ -25,7 +25,7 @@ def train():
             print('LR GridSearch')
             best_ft_acc, best_ft_lr = gridsearch.search_lr(appr.model, t, trn_loader[t], val_loader[t])
             # Apply to approach
-            appr.lr_list = [best_ft_lr]
+            appr.learning_rates = [best_ft_lr]
             gen_params = gridsearch.gs_config.get_params('general')
             for k, v in gen_params.items():
                 if not isinstance(v, list):
@@ -40,7 +40,7 @@ def train():
                 setattr(appr, tradeoff_name, best_tradeoff)
 
             print('-' * 108)
-
+        breakpoint()
         # Train
         appr.train(t, trn_loader[t], val_loader[t])
         print('-' * 108)
