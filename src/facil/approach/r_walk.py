@@ -12,15 +12,8 @@ class Appr(Inc_Learning_Appr):
     http://openaccess.thecvf.com/content_ECCV_2018/papers/Arslan_Chaudhry__Riemannian_Walk_ECCV_2018_paper.pdf
     """
 
-    def __init__(self, model, device, *, lamb, alpha, damping, fim_sampling_type,
-                 fim_num_samples, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
-
-        self.lamb = lamb
-        self.alpha = alpha
-        self.damping = damping
-        self.sampling_type = fim_sampling_type
-        self.num_samples = fim_num_samples
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
 
         # In all cases, we only keep importance weights for the model, but not for the heads.
         feat_ext = self.model.model
@@ -74,20 +67,20 @@ class Appr(Inc_Learning_Appr):
         fisher = {n: torch.zeros(p.shape).to(self.device) for n, p in self.model.model.named_parameters()
                   if p.requires_grad}
         # Compute fisher information for specified number of samples -- rounded to the batch size
-        n_samples_batches = (self.num_samples // trn_loader.batch_size + 1) if self.num_samples > 0 \
+        n_samples_batches = (self.fim_num_samples // trn_loader.batch_size + 1) if self.fim_num_samples > 0 \
             else (len(trn_loader.dataset) // trn_loader.batch_size)
         # Do forward and backward pass to compute the fisher information
         self.model.train()
         for images, targets in itertools.islice(trn_loader, n_samples_batches):
             outputs = self.model.forward(images.to(self.device))
 
-            if self.sampling_type == 'true':
+            if self.fim_sampling_type == 'true':
                 # Use the labels to compute the gradients based on the CE-loss with the ground truth
                 preds = targets.to(self.device)
-            elif self.sampling_type == 'max_pred':
+            elif self.fim_sampling_type == 'max_pred':
                 # Not use labels and compute the gradients related to the prediction the model has learned
                 preds = torch.cat(outputs, dim=1).argmax(1).flatten()
-            elif self.sampling_type == 'multinomial':
+            elif self.fim_sampling_type == 'multinomial':
                 # Use a multinomial sampling to compute the gradients
                 probs = torch.nn.functional.softmax(torch.cat(outputs, dim=1), dim=1)
                 preds = torch.multinomial(probs, len(targets)).flatten()

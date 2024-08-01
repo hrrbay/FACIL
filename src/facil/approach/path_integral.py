@@ -11,12 +11,9 @@ class Appr(Inc_Learning_Appr):
     Original code available at https://github.com/ganguli-lab/pathint
     """
 
-    def __init__(self, model, device, *, lamb, damping, **base_appr_args):
-        super(Appr, self).__init__(model, device, **base_appr_args)
+    def __init__(self, model, device, **kwargs):
+        super(Appr, self).__init__(model, device, **kwargs)
         
-        self.lamb = lamb
-        self.damping = damping
-
         # In all cases, we only keep importance weights for the model, but not for the heads.
         feat_ext = self.model.model
         # Page 3, following Eq. 3: "The w now have an intuitive interpretation as the parameter specific contribution to

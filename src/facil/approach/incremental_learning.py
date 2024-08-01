@@ -11,7 +11,7 @@ import facil
 class Inc_Learning_Appr:
     """Basic class for implementing incremental learning approaches"""
 
-    def __init__(self, model, device, nepochs=100, lr=0.05, lr_min=1e-4, lr_factor=3, lr_patience=5, clipgrad=10000,
+    def __init__(self, model, device, nepochs=100, lr=[0.05], lr_min=1e-4, lr_factor=3, lr_patience=5, clipgrad=10000,
                  momentum=0, wd=0, multi_softmax=False, wu_nepochs=0, wu_lr_factor=1, fix_bn=False,
                  eval_on_train=False, logger: ExperimentLogger = None, exemplars_dataset: ExemplarsDataset = None, **appr_kwargs):
         self.model = model
