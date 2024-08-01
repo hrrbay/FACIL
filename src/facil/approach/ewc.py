@@ -58,20 +58,20 @@ class Appr(Inc_Learning_Appr):
         fisher = {n: torch.zeros(p.shape).to(self.device) for n, p in self.model.model.named_parameters()
                   if p.requires_grad}
         # Compute fisher information for specified number of samples -- rounded to the batch size
-        n_samples_batches = (self.num_samples // trn_loader.batch_size + 1) if self.num_samples > 0 \
+        n_samples_batches = (self.fi_num_samples // trn_loader.batch_size + 1) if self.fi_num_samples > 0 \
             else (len(trn_loader.dataset) // trn_loader.batch_size)
         # Do forward and backward pass to compute the fisher information
         self.model.train()
         for images, targets in itertools.islice(trn_loader, n_samples_batches):
             outputs = self.model.forward(images.to(self.device))
 
-            if self.sampling_type == 'true':
+            if self.fi_sampling_type == 'true':
                 # Use the labels to compute the gradients based on the CE-loss with the ground truth
                 preds = targets.to(self.device)
-            elif self.sampling_type == 'max_pred':
+            elif self.fi_sampling_type == 'max_pred':
                 # Not use labels and compute the gradients related to the prediction the model has learned
                 preds = torch.cat(outputs, dim=1).argmax(1).flatten()
-            elif self.sampling_type == 'multinomial':
+            elif self.fi_sampling_type == 'multinomial':
                 # Use a multinomial sampling to compute the gradients
                 probs = torch.nn.functional.softmax(torch.cat(outputs, dim=1), dim=1)
                 preds = torch.multinomial(probs, len(targets)).flatten()

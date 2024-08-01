@@ -26,7 +26,7 @@ class Appr(Inc_Learning_Appr):
 
     def _get_optimizer(self):
         """Returns the optimizer"""
-        if len(self.exemplars_dataset) == 0 and len(self.model.heads) > 1 and not self.all_out:
+        if len(self.exemplars_dataset) == 0 and len(self.model.heads) > 1 and not self.all_outputs:
             # if there are no exemplars, previous heads are not modified
             params = list(self.model.model.parameters()) + list(self.model.heads[-1].parameters())
         else:
@@ -52,6 +52,6 @@ class Appr(Inc_Learning_Appr):
 
     def criterion(self, t, outputs, targets):
         """Returns the loss value"""
-        if self.all_out or len(self.exemplars_dataset) > 0:
+        if self.all_outputs or len(self.exemplars_dataset) > 0:
             return torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
         return torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])

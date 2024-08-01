@@ -96,6 +96,6 @@ class Appr(Inc_Learning_Appr):
 
     def criterion(self, t, outputs, targets):
         """Returns the loss value"""
-        if self.all_out or self._has_exemplars():
+        if self.all_outputs or self._has_exemplars():
             return torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
         return torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
