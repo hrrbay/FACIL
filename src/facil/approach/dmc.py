@@ -77,7 +77,7 @@ class Appr(Inc_Learning_Appr):
             dmc_args = dict(nepochs=self.nepochs, lr=self.learning_rates, lr_min=self.lr_min, lr_factor=self.lr_factor,
                             lr_patience=self.lr_patience, clipgrad=self.clipgrad, momentum=self.momentum,
                             wd=self.wd, multi_softmax=self.multi_softmax, wu_nepochs=self.warmup_epochs,
-                            wu_lr_factor=self.warmup_lr, fix_bn=self.fix_bn)
+                            wu_lr_factor=self.warmup_lr, fix_bn=self.fix_bn, logger=self.logger)
             # Train new model in new data
             new_trainer = NewTaskTrainer(self.model_new, self.device, **dmc_args)
             new_trainer.train_loop(t, trn_loader, val_loader)
