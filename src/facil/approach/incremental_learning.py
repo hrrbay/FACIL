@@ -13,7 +13,7 @@ class Inc_Learning_Appr:
 
     def __init__(self, model, device, nepochs, lr, lr_min, lr_factor, lr_patience, clipgrad,
                  momentum, wd, multi_softmax, wu_nepochs, wu_lr_factor, fix_bn,
-                 eval_on_train, logger: ExperimentLogger, exemplars_dataset: ExemplarsDataset, **appr_kwargs):
+                 eval_on_train, logger: ExperimentLogger, exemplars_dataset: ExemplarsDataset = None, **appr_kwargs):
         self.model = model
         self.device = device
         self.nepochs = nepochs
