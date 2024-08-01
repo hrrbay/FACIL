@@ -159,7 +159,7 @@ class Appr(Inc_Learning_Appr):
             # In their code is specified that momentum is always 0.9
             bic_optimizer = torch.optim.SGD(self.bias_layers[t].parameters(), lr=self.lr, momentum=0.9)
             # Loop epochs
-            for e in range(self.bias_epochs):
+            for e in range(self.num_bias_epochs):
                 # Train bias correction layers
                 clock0 = time.time()
                 total_loss, total_acc = 0, 0
@@ -184,7 +184,7 @@ class Appr(Inc_Learning_Appr):
                     bic_optimizer.step()
                 clock1 = time.time()
                 # reducing the amount of verbose
-                if (e + 1) % (self.bias_epochs / 4) == 0:
+                if (e + 1) % (self.num_bias_epochs / 4) == 0:
                     print('| Epoch {:3d}, time={:5.1f}s | Train: loss={:.3f}, TAg acc={:5.1f}% |'.format(
                           e + 1, clock1 - clock0, total_loss / len(bic_val_loader.dataset.labels),
                           100 * total_acc / len(bic_val_loader.dataset.labels)))
