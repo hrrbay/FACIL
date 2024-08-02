@@ -1,3 +1,17 @@
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
+
+- [What is this repository?](#what-is-this-repository)
+- [Changes](#changes)
+  - [Implement FACIL as a self-contained package](#implement-facil-as-a-self-contained-package)
+  - [Approach constructors and arguments](#approach-constructors-and-arguments)
+    - [Adding a new approach](#adding-a-new-approach)
+  - [Logging](#logging)
+    - [Logging of gridsearch-arguments](#logging-of-gridsearch-arguments)
+  - [Learning-rate list](#learning-rate-list)
+- [Sanity checking](#sanity-checking)
+
+<!-- TOC end -->
+
 # What is this repository?
 
 This is a fork of [FACIL](https://github.com/mmasana/FACIL) implementing some QoL changes, which mainly facilitate implementation of new approaches, while keeping the same functionality.
@@ -20,7 +34,7 @@ src/
 where the previous code of `main_incremental.py` is moved into `facil.py`.
 Many variables (e.g. loaders, args) are then easily accessible within the whole package, i.e., from any newly added file via `facil.x`. While this may not always be desirable, it can be particularly useful when implementing new approaches and the need to access some variables (otherwise not needed) arises to perform debugging, sanity checking or similar.
 
-## approach constructors and arguments
+## Approach constructors and arguments
 
 Up until now, adding new arguments to an approach was somewhat tedious due to the redundancy of defining default values in `extra_parser` and `__init__`. This is also suspect to confusion: which default value is actually used? 
 
