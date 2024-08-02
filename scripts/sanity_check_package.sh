@@ -2,23 +2,19 @@
 
 
 : '
-    This script sanity-checks the last original facil commit (see below) against the packaged version.
+    This script sanity-checks two commits (`original_commit` and `package_commit`) against each other. by default, `package_commit` is the **latest** commit on `master`.
 
-    This is done by comparing results for all approaches. 
-    Note that LUCIR is expected to crash as it does not run on original version itself (at least not with arguments used here).
+    This is done by comparing results for all approaches. LUCIR and IL2M are expected to crash as both lead to errors on the original version itself.
     
+    You can change the parameters used for experiments or commits to compare below.
 '
 
-# the commit before converting facil to package-like
+# commits to compare to each other
 original_commit=e09d2c83320a1aa945a6157d4875437515824dc9
-# the final commit of package-like facil
-# package_commit=176377bea8d980db89b9e14b4c64c5e56f5109c8
+package_commit=master
 
-# TODO: update after adding readme
-# package_commit=389070bf1e016c60d13aff91718114b7df787acb
-package_commit=package
-# args
-nepochs=5
+# experiment arguments
+nepochs=3
 num_tasks=3
 gridsearch_tasks=3
 num_exemplars=20
@@ -27,22 +23,27 @@ dataset=mnist
 
 num_errors=0
 
+# do everything in /tmp
 out_path=/tmp/facil_check
 mkdir -p $out_path
 cd $out_path
+
+# remove all old checks
 rm -rf original
 rm -rf facil
 rm -rf package
+
+# clone repo
 git clone https://github.com/hrrbay/facil.git $out_path/facil
 cd facil/src  
 echo "PWD: $(pwd)"
 
 
-# set data-path to prev. default
+# this environment variable is used as data-path in the updated version. Set it to the previous default.
 export DATA_PATH="../data"
 
-
 check_equal() {
+    # Compute diff of two files ($1, $2)
     diff $1 $2
     diff_ret=$?
     if [ $diff_ret -ne 0 ]; then
@@ -55,18 +56,9 @@ check_equal() {
     return 0
 }
 
-compare_stdout() {
-    appr=$1
-    original=$(ls -t ${out_path}/original/mnist_${appr}/stdout* | head -1)
-    package=$(ls -t ${out_path}/package/mnist_${appr}/stdout* | head -1)
-
-    echo "diff of stdout (original to package):"
-    diff -y --suppress-common-lines $original $package
-}
-
-echo ""
 
 print_suc_err() {
+    # Used to print checkmark or X depending on last exit status (passed in $1)
     if [ $1 -ne 0 ]; then
         echo -e "\u2715"
     else
@@ -76,6 +68,7 @@ print_suc_err() {
 
 
 print_stderr() {
+    # Check if last process failed (exit-code passed in $1). If it did, print corresponding logged stderr
     ret_val=$1
     if [ $ret_val -eq 0 ]; then
         return
@@ -83,68 +76,87 @@ print_stderr() {
     appr=$2
     version=$3
 
-    stderr_file=$(ls -t ${out_path}/$version/${dataset}_${appr}/stderr* | head -1)
-
-    echo "Error running $appr on $version version:"
-    if [ -f $sterr_file ]; then
+    stderr_file=$(ls -t ${out_path}/${version}/${dataset}_${appr}/stderr* | head -1)
+    echo "Error running $appr on $version version. If no output follows, stderr does not exist."
+    if [ ! -z $stderr_file ]; then
         cat $stderr_file
     fi
     echo ""
 
 }
 
+run_exp() {
+    # Run an experiment for either original or packaged version. Then check exit-code. Return 0 if successful, 1 otherwise
+    commit=$1
+    approach=$2
+    args=$3
+    version=
+    if [ $commit == $original_commit ]; then
+        version="original"
+    elif [ $commit == $package_commit ]; then
+        version="package"
+    else
+        echo "Invalid commit $commit to run experiment."
+        return 1
+    fi
+
+
+    echo -n "running $approach $version... "
+    git checkout $commit > /dev/null 2>&1
+    results_path=${out_path}/${version}
+    python3 main_incremental.py --results-path $results_path --approach $approach $args > /dev/null 2>&1
+    exit_code=$?
+    print_suc_err $exit_code
+    print_stderr $exit_code $approach $version
+    return $exit_code
+}
+
 failed_approaches=()
 test_approach() {
     : '
     Train an approach ($1) with both, the original facil, and the packaged version and then run diff on results.
-    Most parameters are fixed above, with $2 being --num-exemplars.
+    Remaining parameters are given as a string in $2.
     '
     num_wrong=0
-    
+    approach=$1
+    args=$2
+
     # train original facil
-    echo -n "running $1 original... "
-    git checkout $original_commit > /dev/null 2>&1
-    python3 main_incremental.py --results-path $out_path/original --approach $1 $2 > /dev/null 2>&1
-    ret_val=$?
-    num_wrong=$((num_wrong+ret_val))
-    print_suc_err $ret_val
-    print_stderr $ret_val $1 "original"
+    run_exp $original_commit $approach "$args"
+    num_wrong=$((num_wrong+$?))
 
     # train package-facils
-    git checkout $package_commit > /dev/null 2>&1
-    echo -n "running $1 pacakaged... "
-    python3 main_incremental.py --results-path $out_path/package --approach $1 $2 > /dev/null 2>&1
-    ret_val=$?
-    num_wrong=$((num_wrong+ret_val))
-    print_suc_err $ret_val
-    print_stderr $ret_val $1 "package"
+    run_exp $package_commit $approach "$args"
+    num_wrong=$((num_wrong+$?))
 
     if [ $num_wrong -eq 0 ]; then
-        # count number of errors for approach
+        # if no approach failed, compare their results
         echo -n "checking task-aware... "
+
         # check equal results taw
         original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_taw* | head -1)
         package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_taw* | head -1)
 
         check_equal $original $package 
-        
+        # increase number of errors if not equal
         ret_val=$?
         num_wrong=$((num_wrong+ret_val))
         print_suc_err $ret_val
 
 
         echo -n "checking task-agnostic... "
+
         # check equal results tag
         original=$(ls -t ${out_path}/original/mnist_${1}/results/acc_tag* | head -1)
         package=$(ls -t ${out_path}/package/mnist_${1}/results/acc_tag* | head -1)
 
         check_equal $original $package
+        # increase number of errors if not equal
         ret_val=$?
         num_wrong=$((num_wrong+ret_val))
         print_suc_err $ret_val
-
-        # compare_stdout $1
     fi
+
     # only count errors once for approach.
     if [ $num_wrong -gt 0 ]; then
         num_errors=$((num_errors+1))

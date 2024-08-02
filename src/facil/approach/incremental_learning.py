@@ -46,7 +46,10 @@ class Inc_Learning_Appr:
 
     @staticmethod
     def extra_parser(args):
-        """Returns a parser containing the approach specific parameters"""
+        """Returns a parser containing the approach specific parameters
+        
+        All arugments will be automatically set as members in the constructor.
+        """
         parser = ArgumentParser()
         return parser.parse_known_args(args)
 
