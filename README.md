@@ -50,6 +50,8 @@ def __init__(self, model, device, nepochs, lr, lr_min, lr_factor, lr_patience, c
 # sub-class (e.g. dmc)
 def __init__(self, model, device, **kwargs):
     super(Appr, self).__init__(model, device, **kwargs)
+    # all members corresponding to destination-names of arguments in `extra_parser` are already set now!
+    
     self.model_old = None
     self.model_new = None
     
