@@ -6,6 +6,8 @@ from argparse import ArgumentParser
 from ..loggers.exp_logger import ExperimentLogger
 from ..datasets.exemplars_dataset import ExemplarsDataset
 
+import facil
+
 class Inc_Learning_Appr:
     """Basic class for implementing incremental learning approaches"""
 
@@ -72,6 +74,9 @@ class Inc_Learning_Appr:
 
     def pre_train_process(self, t, trn_loader):
         """Runs before training all epochs of the task (before the train session)"""
+
+        # seed -- this way pre-train of other approaches cannot mess with seeding
+        facil.utils.seed_everything(seed=facil.args.seed)
 
         # update learning-rate
         if len(self.learning_rates) < t+1:
