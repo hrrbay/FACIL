@@ -84,50 +84,8 @@ class Appr(Inc_Learning_Appr):
         # set hook to store old outputs AFTER copying model. Otherwise hook is copied
         def input_forward_hook(module, input, output):
             # pass input through old model
-            if t > 0:
-                self.outputs_old = self.model_old(input[0])
-
+            self.outputs_old = self.model_old(input[0])
         self.hook_handle = list(self.model.model.children())[0].register_forward_hook(input_forward_hook)
-
-    def train_epoch(self, t, trn_loader):
-        """Runs a single epoch"""
-        self.model.train()
-        if self.fix_bn and t > 0:
-            self.model.freeze_bn()
-        for images, targets in trn_loader:
-            # Forward old model
-            targets_old = None
-            if t > 0:
-                targets_old = self.model_old(images.to(self.device))
-            # Forward current model
-            outputs = self.model(images.to(self.device))
-            loss = self.criterion(t, outputs, targets.to(self.device), targets_old)
-            # Backward
-            self.optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clipgrad)
-            self.optimizer.step()
-
-    def eval(self, t, val_loader):
-        """Contains the evaluation code"""
-        with torch.no_grad():
-            total_loss, total_acc_taw, total_acc_tag, total_num = 0, 0, 0, 0
-            self.model.eval()
-            for images, targets in val_loader:
-                # Forward old model
-                targets_old = None
-                if t > 0:
-                    targets_old = self.model_old(images.to(self.device))
-                # Forward current model
-                outputs = self.model(images.to(self.device))
-                loss = self.criterion(t, outputs, targets.to(self.device), targets_old)
-                hits_taw, hits_tag = self.calculate_metrics(outputs, targets)
-                # Log
-                total_loss += loss.data.cpu().numpy().item() * len(targets)
-                total_acc_taw += hits_taw.sum().data.cpu().numpy().item()
-                total_acc_tag += hits_tag.sum().data.cpu().numpy().item()
-                total_num += len(targets)
-        return total_loss / total_num, total_acc_taw / total_num, total_acc_tag / total_num
 
     def cross_entropy(self, outputs, targets, exp=1.0, size_average=True, eps=1e-5):
         """Calculates cross-entropy with temperature scaling"""
