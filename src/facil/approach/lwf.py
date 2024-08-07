@@ -113,9 +113,10 @@ class Appr(Inc_Learning_Appr):
             loss += loss_reg
         # Current cross-entropy loss -- with exemplars use all heads
         if len(self.exemplars_dataset) > 0:
-            return loss + torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
-        
-        loss = loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+            loss = loss + torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
+        else:
+            loss = loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+            
         if return_reg:
             return loss, loss_reg
         return loss
