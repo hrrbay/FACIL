@@ -26,8 +26,10 @@ class Appr(Inc_Learning_Appr):
                 appr_Cls = getattr(importlib.import_module(f'.{appr_name}', package='facil.approach'), 'Appr')
             except ModuleNotFoundError:
                 assert False, f'Approach {appr_name} does not exists. Make sure the argument corresponds to the file-name of the approach.'
+
             # use extra-args not parsed by FACIL yet
-            appr_args = appr_Cls.extra_parser(facil.extra_args)[0]
+            cur_appr_args = [arg.replace(appr_name, '') for arg in facil.extra_args]
+            appr_args = appr_Cls.extra_parser(cur_appr_args)[0]
             # set member, also replace names in argument witha actual approaches
             setattr(self, appr_name, appr_Cls(self.model, self.device, **facil.base_kwargs, **appr_args.__dict__))
             # we also need exemplars-dataset. this is a little weird. TODO: we could change this in init of facil   
@@ -37,11 +39,6 @@ class Appr(Inc_Learning_Appr):
         self.reg_approaches = {}
         for appr_name in appr_names:
             self.reg_approaches[appr_name] = getattr(self, appr_name)
-
-        # dirty hack -- if lwf in approaches, let's use its functions for old_outputs
-        # TODO: make this nicer
-
-        # TODO: store approaches in dict? easier to access isntead of getattr()
 
 
     @staticmethod
@@ -59,7 +56,9 @@ class Appr(Inc_Learning_Appr):
         parser.add_argument('--beta', default=1, type=float, required=False,
                             help='Forgetting-intransigence trade-off for mnemonic codes (default=%(default)s)')
         parser.add_argument('--reg-approaches', default=[], type=str, nargs='+', required=False,
-                            help='Approach(es) to use for regularization loss (default=%(default)s)')
+                            help='Approach(es) to use for regularization loss (default=%(default)s). Pass arguments to these approaches by their default names prepended with `approach-`, e.g. `lwf-lamb` or `lwf-T`')
+        """ Pass reg-approach-args as `appr-arg`, e.g., `lwf-lamb`, `lwf-T`
+        """
         return parser.parse_known_args(args)
 
     def _get_optimizer(self):
