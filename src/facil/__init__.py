@@ -44,13 +44,13 @@ def init():
     log_args()
 
     # initialize model, data, approach
-    utils.seed_everything()
+    utils.seed_everything(seed=args.seed)
     init_model()
-    utils.seed_everything()
+    utils.seed_everything(seed=args.seed)
     load_data()
-    utils.seed_everything()
+    utils.seed_everything(seed=args.seed)
     init_approach()
-    utils.seed_everything()
+    utils.seed_everything(seed=args.seed)
 
 def train():
     from . import training
