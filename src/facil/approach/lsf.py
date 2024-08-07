@@ -1,8 +1,8 @@
 import importlib
-import itertools
 from argparse import ArgumentParser
 
 import torch
+import numpy as np
 
 from ..datasets.exemplars_dataset import ExemplarsDataset
 from .incremental_learning import Inc_Learning_Appr
@@ -40,6 +40,8 @@ class Appr(Inc_Learning_Appr):
         for appr_name in appr_names:
             self.reg_approaches[appr_name] = getattr(self, appr_name)
 
+        # dict to store mnemonic codes
+        self.class_codes = {}
 
     @staticmethod
     def exemplars_dataset_class():
@@ -51,7 +53,7 @@ class Appr(Inc_Learning_Appr):
         parser = ArgumentParser()
         # Eq. 1: x = lamb*x + (1-lamb)*eps "lambda is a uniform random variable in [0, 1]"
         parser.add_argument('--alpha', default=0.5, type=float, required=False,
-                            help='Mnemonic augmentation trade-off (default=%(default)s')
+                            help='Mnemonic augmentation scalar (range 0-1, default=%(default)s)')
         # Eq. 5: 'lamb_sf is a balancing weight'
         parser.add_argument('--beta', default=1, type=float, required=False,
                             help='Forgetting-intransigence trade-off for mnemonic codes (default=%(default)s)')
@@ -93,8 +95,19 @@ class Appr(Inc_Learning_Appr):
         for appr in self.reg_approaches:
             getattr(self, appr).optimizer = self.reg_approaches[appr]._get_optimizer()
         
+        # get shape of imgas for mnemonic code
+        if t == 0:
+            self.class_code_shape = trn_loader.dataset.images[0].shape
+            if len(self.class_code_shape) > 2:
+                self.class_code_shape = (self.class_code_shape[-1], *self.class_code_shape[0:-1]) 
+            self.class_code_shape = (1, *self.class_code_shape)
+
+        for cls in np.unique(trn_loader.dataset.labels):
+            self.class_codes[cls] = self.generate_class_code()
+
         super().pre_train_process(t, trn_loader)
 
+    
     def post_train_process(self, t, trn_loader):
         """Runs after training all the epochs of the task (after the train session)"""
 
@@ -103,27 +116,96 @@ class Appr(Inc_Learning_Appr):
             # TODO: see __init__
             getattr(self, appr_name).post_train_process(t, trn_loader)
 
-    def criterion(self, t, outputs, targets):
+
+    
+    def augment_samples(self, inputs, targets):
+        if self.alpha == 0 or self.beta == 0:
+            # no need to augment if no effect
+            return None
+
+        codes = torch.stack([self.class_codes[t.item()] for t in targets], dim=0)
+        augmented_samples = self.alpha * inputs + (1 - self.alpha) * codes
+        return augmented_samples
+
+    def train_epoch(self, t, trn_loader):
+        """Runs a single epoch"""
+        self.model.train()
+        if self.fix_bn and t > 0:
+            self.model.freeze_bn()
+        for images, targets in trn_loader:
+            # Forward current model
+            outputs = self.model(images.to(self.device))
+
+            # Eq. 1, 3 -- Compute outputs of augmented samples
+            augmented_outputs = None
+            if self.alpha != 0 and self.beta != 0:
+                augmented_samples = self.augment_samples(images, targets)
+                augmented_outputs = self.model(augmented_samples.to(self.device))
+
+            loss = self.criterion(t, outputs, targets.to(self.device), augmented_outputs)
+
+            # Backward
+            self.optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.clipgrad)
+            self.optimizer.step()
+
+    def eval(self, t, val_loader):
+        """Contains the evaluation code"""
+        with torch.no_grad():
+            total_loss, total_acc_taw, total_acc_tag, total_num = 0, 0, 0, 0
+            self.model.eval()
+            for images, targets in val_loader:
+                # Forward current model
+                outputs = self.model(images.to(self.device))
+
+                # Eq. 1, 3 -- Compute outputs of augmented samples
+                augmented_outputs = None
+                if self.alpha != 0 and self.beta != 0:
+                    augmented_samples = self.augment_samples(images, targets)
+                    augmented_outputs = self.model(augmented_samples.to(self.device))
+
+                loss = self.criterion(t, outputs, targets.to(self.device), augmented_outputs)
+
+                hits_taw, hits_tag = self.calculate_metrics(outputs, targets)
+                # Log
+                total_loss += loss.item() * len(targets)
+                total_acc_taw += hits_taw.sum().item()
+                total_acc_tag += hits_tag.sum().item()
+                total_num += len(targets)
+        return total_loss / total_num, total_acc_taw / total_num, total_acc_tag / total_num
+
+    def generate_class_code(self):
+        """Returns tensor of shape `self.class_code_shape` filled with uniformly distributed values in [-1, 1)
+        """
+        return torch.randn(*self.class_code_shape) * 2 - 1
+    
+    
+    def criterion(self, t, outputs, targets, augmented_outputs=None):
         """Returns the loss value"""
-        loss = 0
+        c_loss = 0 # base classification loss
+        m_loss = 0 # mnemonic loss (stability)
+        sf_loss = 0 # selective forgetting loss (stability only on preserved classes)
+        reg_loss = 0 # additional regularization
 
         if t > 0:
-            # compute sf-loss TODO
+            # TODO: compute sf-loss
 
             # compute regularization-losses
-            reg_loss = 0
             for appr in self.reg_approaches.values():
                 reg_loss += appr.criterion(t, outputs, targets, True)[1]
 
-            loss += reg_loss
-        # if t > 0:
-        #     loss_reg = 0
-        #     # Eq. 3: elastic weight consolidation quadratic penalty
-        #     for n, p in self.model.model.named_parameters():
-        #         if n in self.fisher.keys():
-        #             loss_reg += torch.sum(self.fisher[n] * (p - self.older_params[n]).pow(2)) / 2
-        #     loss += self.lamb * loss_reg
+        # compute mnemonic loss
         # # Current cross-entropy loss -- with exemplars use all heads
         if len(self.exemplars_dataset) > 0:
-            return loss + torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
-        return loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+            c_loss = torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
+            if augmented_outputs is not None:
+                m_loss = self.beta * torch.nn.functional.cross_entropy(torch.cat(augmented_outputs, dim=1), targets)
+        else:
+            c_loss = torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+            if augmented_outputs is not None:
+                m_loss = self.beta * torch.nn.functional.cross_entropy(augmented_outputs[t], targets - self.model.task_offset[t])
+
+        # Eq. 2 -- loss function        
+        loss = c_loss + m_loss + sf_loss + reg_loss
+        return loss
