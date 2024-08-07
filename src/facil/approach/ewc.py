@@ -122,7 +122,7 @@ class Appr(Inc_Learning_Appr):
             else:
                 self.fisher[n] = (self.alpha * self.fisher[n] + (1 - self.alpha) * curr_fisher[n])
 
-    def criterion(self, t, outputs, targets):
+    def criterion(self, t, outputs, targets, return_reg=False):
         """Returns the loss value"""
         loss = 0
         if t > 0:
@@ -131,8 +131,16 @@ class Appr(Inc_Learning_Appr):
             for n, p in self.model.model.named_parameters():
                 if n in self.fisher.keys():
                     loss_reg += torch.sum(self.fisher[n] * (p - self.older_params[n]).pow(2)) / 2
-            loss += self.lamb * loss_reg
+            loss_reg = self.lamb * loss_reg
+            loss += loss_reg
+            
+        
         # Current cross-entropy loss -- with exemplars use all heads
         if len(self.exemplars_dataset) > 0:
-            return loss + torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
-        return loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+            loss = loss + torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
+        else:
+            loss = loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+        
+        if return_reg:
+            return loss, loss_reg
+        return loss
