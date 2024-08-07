@@ -19,6 +19,11 @@ class Appr(Inc_Learning_Appr):
 
         self.model_old = None
 
+        # use forward hook to store old ouputs
+        self.outputs_old = None
+        self.hook_handle = None
+
+
     @staticmethod
     def exemplars_dataset_class():
         return ExemplarsDataset
@@ -67,10 +72,22 @@ class Appr(Inc_Learning_Appr):
     def post_train_process(self, t, trn_loader):
         """Runs after training all the epochs of the task (after the train session)"""
 
+        # remove hook before copying to not copy it
+        if t > 0:
+            self.hook_handle.remove()
+
         # Restore best and save model for future tasks
         self.model_old = deepcopy(self.model)
         self.model_old.eval()
         self.model_old.freeze_all()
+
+        # set hook to store old outputs AFTER copying model. Otherwise hook is copied
+        def input_forward_hook(module, input, output):
+            # pass input through old model
+            if t > 0:
+                self.outputs_old = self.model_old(input[0])
+
+        self.hook_handle = list(self.model.model.children())[0].register_forward_hook(input_forward_hook)
 
     def train_epoch(self, t, trn_loader):
         """Runs a single epoch"""
@@ -128,14 +145,19 @@ class Appr(Inc_Learning_Appr):
             ce = ce.mean()
         return ce
 
-    def criterion(self, t, outputs, targets, outputs_old=None):
+    def criterion(self, t, outputs, targets, return_reg=False):
         """Returns the loss value"""
         loss = 0
         if t > 0:
             # Knowledge distillation loss for all previous tasks
-            loss += self.lamb * self.cross_entropy(torch.cat(outputs[:t], dim=1),
-                                                   torch.cat(outputs_old[:t], dim=1), exp=1.0 / self.T)
+            loss_reg = self.lamb * self.cross_entropy(torch.cat(outputs[:t], dim=1),
+                                                   torch.cat(self.outputs_old[:t], dim=1), exp=1.0 / self.T)
+            loss += loss_reg
         # Current cross-entropy loss -- with exemplars use all heads
         if len(self.exemplars_dataset) > 0:
             return loss + torch.nn.functional.cross_entropy(torch.cat(outputs, dim=1), targets)
-        return loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+        
+        loss = loss + torch.nn.functional.cross_entropy(outputs[t], targets - self.model.task_offset[t])
+        if return_reg:
+            return loss, loss_reg
+        return loss
